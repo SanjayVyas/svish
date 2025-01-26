@@ -85,6 +85,7 @@ function get_repo_name_icon --description "given remote url, return name and ico
 
     # repo_host e.g. http://github.com/UserName/repo
     set repo_url (git remote -v | grep fetch | head -1 | tr '\t' ' ' | cut -d ' ' -f2 )
+    
     # repo_domain, e.g. github.com
     set repo_domain (domain_from_url $repo_url)
 

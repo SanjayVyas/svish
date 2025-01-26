@@ -265,6 +265,7 @@ end
 function domain_from_url
     [ -z $argv[1] ] && echo None
     set url (string replace -r 'https?://(www\.)?' '' $argv[1])
+    set url (string replace -r '^.*@' '' $argv[1])
     set url (string replace -r '/.*$' '' $url)
     set url (string replace -r '\.*' ' ' $url)
     echo $url | tr -d ' '

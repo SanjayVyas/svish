@@ -11,7 +11,7 @@
 
 ### Prerequisites
 
-* **Fish Shell:** Download and install Fish shell from https://github.com/oh-my-fish/oh-my-fish.
+* **Fish Shell:** Download and install Fish shell from https://fishshell.com
 * **Nerd Font:** Download and install a nerd font from https://www.nerdfonts.com/ for displaying icons within the prompt.
 * **Nerd Font Compatible Terminal:**
     * For Mac, iTerm2 is recommended as the built-in terminal has limited nerd font support. Download iTerm2 from https://iterm2.com/.

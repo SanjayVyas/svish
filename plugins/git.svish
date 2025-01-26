@@ -16,7 +16,7 @@ function svish_git
         set branch_name (get_branch_name)
         set body (fixed_placeholder "branch" "$branch_name" "$body")
 
-        if show $git_totals_only_when_clean && repo_is_clean || not show $git_totals_only_when_clean
+        if show $git_totals_only_when_clean && repo_is_clean 
 
             # commit hash
             if [ $git_commit_hash_digits -gt 0 ]

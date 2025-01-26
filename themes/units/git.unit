@@ -1,0 +1,25 @@
+# github.com/SanjayVyas
+
+# Do not modify this file
+# @import it in the theme and redefine values
+
+[ git ]
+segment_git '  #remote  #branch ┃ #hash 󰜘#commits 󱔗#objects 󱓊#branches  󰡯#untracked #added 󱇧#modified #xyz  󰗨#deleted #abc' 
+git_decorator  black light_red 
+
+git_details                     yes
+    git_remote_icon             yes
+    git_commit_hash_digits      4
+    git_total_commits           yes
+    git_total_objects           yes
+    git_total_branches          yes
+    git_totals_only_when_clean  yes
+    git_untracked               yes   
+    git_added                   yes
+    git_modified                yes
+    git_deleted                 yes
+    git_change_color_on_status  yes
+    git_dirty_color             light_red
+    git_clean_color             light_green
+    git_staged_color            light_orange
+    git_some_staged             yellow

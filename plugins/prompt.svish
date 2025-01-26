@@ -1,0 +1,27 @@
+# github.com/SanjayVyas
+
+function svish_prompt --description "THe actual prompt '>'' part"
+    set body "$segment_prompt"
+
+    # User icon
+    if [ -n $prompt_user_icon ]
+        set body (string replace "#icon" "$prompt_user_icon" $body)
+    else
+        set body (string replace "#icon" '' $body)
+    end
+
+    # username & hostname
+    set body (string replace "#user" (color $USER (get_value $prompt_user_color)) $body)
+    set body (string replace "#host" (color (hostname -s) (get_value $prompt_host_color)) $body)
+
+    if show $prompt_change_color
+        set prompt_icon ([ $exit_value -eq 0 ] && echo (color $prompt_icon (get_value green)) || echo (color $prompt_icon (get_value red)))
+    end
+    
+    if [ -z $body ]
+        set body "$prompt_icon "
+    else
+        set body "$body $prompt_icon "
+    end
+    printf "%s" "$body"
+end

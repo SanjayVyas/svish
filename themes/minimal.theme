@@ -1,0 +1,27 @@
+# github.com/SanjayVyas
+
+# Do not modify this template
+# Copy it and save it as svish.theme in svish main directory and modify
+
+@import themes/units/base.unit
+
+[ directory ]
+@import themes/units/directory.unit
+segment_directory '#path '
+
+[ git ]
+@import themes/units/git.unit
+segment_git ' #branch #status ' 
+    git_details                 no
+    git_remote_icon             no
+    git_commit_hash_digits      4
+
+[ prompt ]
+@import themes/units/prompt.unit
+segment_prompt '#user@#host'
+    prompt_icon                 ''
+    prompt_change_color_on_exit_value yes
+
+[ svish ]
+svish_left_prompt_1 segment_directory gap segment_git
+svish_left_prompt_2 segment_prompt

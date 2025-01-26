@@ -1,0 +1,37 @@
+# github.com/SanjayVyas
+
+# Do not modify this file
+# @import it in the theme and redefine values
+
+# Placeholders
+#   path    - Current directory, e.g. /usr/local/bin
+#   perm    - Permissions that apply in current directory, e.g. r-x
+#   dirs    - Number of directories 
+#   files   - Number of files
+#   links   - Number of soft links
+#   pipes   - Number of named pipes
+#   devices - Number of character/block devices
+
+[ directory ]
+segment_directory '#path ┃ #perm  #dirs #files #links 󰟥#pipes 󰾰#devices #sockets '
+directory_home_decorator     black light_blue 
+directory_root_decorator     black light_purple 
+
+directory_simple_path           no
+    directory_details           yes
+    directory_devices           yes
+    directory_dirs              yes
+    directory_files             yes
+    directory_links             yes
+    directory_pipes             yes
+    directory_sockets           yes
+    directory_perm              yes
+    directory_style             full
+    directory_path_separator    ╱
+
+owner_icon ''
+group_icon ''
+world_icon ''
+
+home_folder_icon ' 🏠'
+root_folder_icon ' 🌏'

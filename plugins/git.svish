@@ -1,0 +1,115 @@
+# github.com/SanjayVyas
+
+function svish_git
+    if [ -d '.git' ]
+
+        set body "$segment_git"
+        
+        # Replace the #remote placeholder with repo and icon, e.g. github 
+        set name_icon (get_repo_name_icon)
+        if [ -n "$name_icon" ]
+            set body (fixed_placeholder "remote" "#$name_icon[1]" "$body")
+            set body (expanded_placeholder "$name_icon[1]" "$name_icon[2]" "$body" "$git_remote_icon")
+        end
+
+        # branch name is always shown
+        set branch_name (get_branch_name)
+        set body (fixed_placeholder "branch" "$branch_name" "$body")
+
+        if show $git_totals_only_when_clean && repo_is_clean || not show $git_totals_only_when_clean
+
+            # commit hash
+            if [ $git_commit_hash_digits -gt 0 ]
+                set commit_hash (string sub -s 1 -e $git_commit_hash_digits ( git rev-parse --short HEAD 2>/dev/null ))
+                set body (expanded_placeholder "hash" "$commit_hash" "$body" "yes")
+            end
+
+            # Find commit totals
+            set commits (count (git log --oneline 2>/dev/null))
+            set objects (count (git ls-files))
+            set branches (count (git branch))
+
+            for placeholder in commits objects branches
+                set placeholder_flag git_total_{$placeholder}
+                set body (expanded_placeholder "$placeholder" "$$placeholder" "$body" "$$placeholder_flag")
+            end
+        else
+            set body (string replace -r "┃.*" "" $body)
+        end
+
+        # git status
+        set untracked (git_status "^\?\?")
+        set added (git_status "^A ")
+        set modified (git_status '(^M|^.M)')
+        set deleted (git_status '(^D|^.D)')
+
+        for placeholder in untracked added deleted modified
+            set placeholder_flag git_{$placeholder}
+            set body (expanded_placeholder "$placeholder" "$$placeholder" "$body" "$$placeholder_flag")
+        end
+        set body (string replace -r ' *$' '' $body)
+
+        # segment color 
+        if repo_is_clean
+            set git_decorator[3] $git_clean_color
+        else if repo_is_dirty
+            set git_decorator[3] $git_dirty_color
+        else
+            set git_decorator[3] $git_staged_color
+        end
+        set body (remove_unused_placeholders $body)
+        printf "%s" "$body"
+    end
+
+end
+
+function git_status
+    echo (count (git status --porcelain 2>/dev/null | egrep $argv))
+end
+
+function repo_is_clean
+    return (count (git status --porcelain 2>/dev/null))
+end
+
+function repo_is_dirty
+    set state (count (git status --porcelain 2>/dev/null | egrep "^\?|^ M"))
+    return ( [ $state -ne 0 ] )
+end
+
+function get_repo_name_icon --description "given remote url, return name and icon"
+
+    # This can be loaded from an external file
+    set repo_list github "" gitlab "󰮠" bitbucket "󰂨"
+    set repo_icon ''
+    set repo_name "No Host"
+
+    # repo_host e.g. http://github.com/UserName/repo
+    set repo_url (git remote -v | grep fetch | head -1 | tr '\t' ' ' | cut -d ' ' -f2 )
+    # repo_domain, e.g. github.com
+    set repo_domain (domain_from_url $repo_url)
+
+    # repo_host e.g. github
+    set repo_name (echo $repo_domain | cut -d '.' -f1)
+
+    # look up github in repo_list above and get the icon
+    set item (listify (string match -n $repo_name $repo_list))
+    set icon_index (math $item[1] + 1)
+    [ -n "$item" ] && set repo_icon $repo_list[ $icon_index ]
+    printf "%s\n%s" "$repo_name" "$repo_icon"
+end
+
+function get_branch_name
+    set branch_name (git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+    # There are no commits, so no branch name
+    if [ $status -ne 0 ]
+        set branch_name None
+    else if [ $branch_name = HEAD ]
+        set branch_name = "detached󱍌"
+    end
+    printf "%s" "$branch_name"
+end
+
+function svish_git_cleanup
+
+end

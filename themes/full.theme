@@ -1,0 +1,19 @@
+# github.com/SanjayVyas
+
+# Do not modify this template
+# Copy it and save it as svish.theme in svish main directory and modify@import themes/units/base.unit
+@import themes/units/base.unit
+@import themes/units/directory.unit
+@import themes/units/git.unit
+@import themes/units/process.unit
+@import themes/units/tips.unit
+@import themes/units/exit.unit
+@import themes/units/weather.unit
+@import themes/units/prompt.unit
+
+[ svish ]
+svish_left_prompt_1     segment_directory  gap segment_git 
+svish_left_prompt_2     segment_prompt
+svish_right_prompt      segment_exit none segment_process none segment_weather none segment_time
+
+svish_blank_line_before yes

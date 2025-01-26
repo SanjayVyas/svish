@@ -1,0 +1,11 @@
+# github.com/SanjayVyas
+
+function svish_exit
+    set body "$segment_exit"
+    if [ "$exit_value" -ne 0 2>/dev/null ]
+        set body (string replace '#exit_value' $exit_value $body)
+    else
+        set body ""
+    end
+    printf "%s" "$body"
+end

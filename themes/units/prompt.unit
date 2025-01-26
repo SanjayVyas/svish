@@ -1,0 +1,15 @@
+# github.com/SanjayVyas
+
+# Do not modify this file
+# @import it in the theme and redefine values
+
+[ prompt ]
+segment_prompt '#icon #user@#host'
+    prompt_decorator                    none white black none
+    prompt_icon                         ''
+    prompt_user_icon                    '👤'
+    prompt_user_color                   yellow
+    prompt_at_color                     white
+    prompt_host_color                   cyan
+    prompt_arrow_color                  white
+    prompt_change_color                 yes

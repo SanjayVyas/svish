@@ -1,0 +1,13 @@
+# github.com/SanjayVyas
+
+# Do not modify this file
+# @import it in the theme and redefine values
+
+@import themes/unit/colors.unit
+@import themes/unit/decorators.unit
+
+[ process ]
+segment_process ' #processes 󰀿#jobs'
+process_decorator  dixel_left black peach dixel_right
+    process_process         yes
+    process_job             yes

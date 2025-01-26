@@ -1,0 +1,11 @@
+# github.com/SanjayVyas
+
+function svish_process
+    set process_count (string trim --left (ps aux|wc -l))
+    set job_count (string trim --left (jobs | wc -l))
+
+    set body "$segment_process"
+    set body (expanded_placeholder "processes" "$process_count" "$body" "$process_process")
+    set body (expanded_placeholder "jobs" "$job_count" "$body" "$process_job")
+    printf "%s" "$body"
+end

@@ -1,0 +1,30 @@
+# github.com/SanjayVyas
+
+# Do not modify this file
+# @import it in the theme and redefine values
+
+[ connectors ]
+arrow_left          
+arrow_right         
+rounded_left        
+rounded_right       
+slant_east_right    
+slant_east_left     
+slant_west_right    
+slant_west_left     
+fire_left          
+fire_right          
+pixel_left         
+pixel_right         
+dixel_left         
+dixel_right         
+
+[ separators ]
+arrow_separator     
+vertical_separator  │
+fslash_separator    ╱
+bslash_separator    ╲
+fat_separator       ┃
+no_separator        ''
+none                ''
+dotted_divider      

@@ -1,0 +1,86 @@
+# github.com/SanjayVyas
+
+function svish_directory_init
+    set -g directory_decorator
+end
+
+function svish_directory
+    
+    set body "$segment_directory"
+
+    # Are we in home directory or elsewhere
+    if string match -eq $HOME (pwd)
+        set folder_icon $home_folder_icon
+        set -g directory_decorator $directory_home_decorator
+        set skip_initial (math (string length $HOME) + 1)
+    else
+        set folder_icon $root_folder_icon
+        set -g directory_decorator $directory_root_decorator
+        set skip_initial 2
+    end
+    set rest_of_the_path (string sub -s "$skip_initial" (pwd) )
+
+    # Replace path with separators /usr/local/bin → usr > local > bin
+    if show $directory_simple_path
+        set body (string replace '#path' (pwd) $body)
+    else
+        set body (string replace -a '/' (get_value "$directory_path_separator") (string replace "#path" $rest_of_the_path $body))
+    end
+
+    # Do we show permissions - 👤rwx?
+    set body (expanded_placeholder 'perm' (permissions_that_apply_to_me) "$body" "$directory_perm")  
+
+    # Check if we are to show directory details like number of dirs, files, etc.
+    if show $directory_details
+
+        # Get count of each type of file
+        set dir_list "$(ls -l)"
+        set dirs_count (get_count "$dir_list" '^d')
+        set files_count (get_count "$dir_list" '^-')
+        set pipes_count (get_count "$dir_list" '^p')
+        set links_count (get_count "$dir_list" '^l')
+        set devices_count (get_count "$dir_list" '^c|^b')
+        set sockets_count (get_count "$dir_list" '^s')
+
+        # Loop thru each type of file, replacing the placeholder in the string
+        set total_count 0
+        for placeholder in "dirs" "files" "links" "pipes" "sockets" "devices"
+            set placeholder_count {$placeholder}_count
+
+            # Check individual flags whether to show the element
+            set visible directory_{$placeholder}
+            set body (expanded_placeholder "$placeholder" $$placeholder_count $body $$visible )
+            set total_count (math $total_count + $$placeholder_count)
+        end
+
+        # If there were no files in the dir, remove the trailing 
+        [ $total_count -eq 0 ] && set body (string replace -r '.*' '' $body )
+    else
+        set body (string replace -r '┃.*' '' $body )
+    end
+    printf "$folder_icon$body"
+end
+
+function get_count
+    echo (count (echo $argv[1] | grep -E $argv[2]))
+end
+
+function permissions_that_apply_to_me
+    set dir_details (ls -ld . | tr -s ' ')
+    set dir_owner (echo $dir_details | cut -d ' ' -f3)
+    set dir_group (echo $dir_details | cut -d ' ' -f4)
+    set current_owner (whoami)
+
+    if [ "$dir_owner" = $current_owner ]
+        set permissions $owner_icon (echo $dir_details| cut -c2-4)
+    else if string match -e $dir_group (groups $current_owner) &>/dev/null
+        set permissions $group_icon (echo $dir_details | cut -c5-7)
+    else
+        set permissions $world_icon (echo $dir_details | cut -c8-10)
+    end
+
+    printf "$permissions"
+end
+
+function svish_directory_cleanup
+end

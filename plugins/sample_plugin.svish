@@ -1,0 +1,34 @@
+# Creating a svish plugin is too easy
+# You need to write a function svish_your_awesome_plugin_name
+
+function svish_awesome
+    # You can get svish to the rendering by creating a list of the following 
+    # segment_awesome 'My awesome plugin with #time and #weather '
+    # After processing the contents (you can replace placeholders with values, e.g. #time)
+    # set body (string replace "#time" (date +HH:MM), $segment_awesome)
+    # Return the contents to render it
+  
+    printf "Time (date +%H:%M)"
+    # That's it
+end
+
+function svish_awesome_init --description "Optional if you don't have anything to initialize"
+    # provide default in case the user does not define the segment in config file (must start with segment_)
+    # set -g segment_awesome 'My awesome plugin with #time and #weather '
+    # 
+    # Provide a decoration (optional) or svish is provide a default decoration (must be ..._decorator)
+    # decoration - start foreground background end
+    # set -g segment_awesome_decoration  white red 
+    # You can also define variable needed only for your plugin
+    # Being a prompt, all plugins are released once the prompt is rendered, so no permanent values
+    # set -g total_logged_in_time 0
+
+end
+
+function svish_awesome_cleanup --description "Options if you have plugin variables"
+    # svish will automatically remove variables from config file
+    # Remove plugin variables, so that they don't pollute fish session
+    # set -e -g total_logged_in_time
+end
+
+# That's it... Enjoy! 😊

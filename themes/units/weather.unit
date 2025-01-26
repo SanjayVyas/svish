@@ -1,0 +1,14 @@
+# github.com/SanjayVyas
+
+# Do not modify this file
+# @import it in the theme and redefine values
+
+[ weather ]
+weather_decorator  white blue 
+    weather_city ' Mumbai'
+    weather_unit 'C'
+    weather_refresh_interval 1
+    weather_temperature_icon '🌤️'
+    weather_show_city yes
+    weather_temperature yes
+    weather_windspeed yes

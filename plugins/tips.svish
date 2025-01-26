@@ -1,0 +1,7 @@
+# github.com/SanjayVyas
+
+function svish_tips
+    set -g svish_time_decorator rounded_left white green rounded_right
+    set body (string replace '#tip' ' Did you know you can configure svish' $segment_tips)
+    printf $body
+end

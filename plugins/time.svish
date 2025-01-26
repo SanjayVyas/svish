@@ -1,0 +1,5 @@
+# github.com/SanjayVyas
+
+function svish_time
+    echo (date +%H:%M)
+end

@@ -1,0 +1,23 @@
+# github.com/SanjayVyas
+
+# Do not modify this file
+# @import it in the theme and redefine values
+
+[ colors ]
+black           000000
+red             FF0000
+yellow          FFFF00
+green           00FF00
+blue            0000FF
+cyan            00FFFF
+magenta         FF00FF
+gray            3F3F3F
+orange          FF781F
+peach           FFD3AC
+light_orange    FFC067
+light_green     B2F8A5
+light_red       FF7F7F
+light_blue      ADD8E6
+light_purple    B19CD9
+maroon          800000
+white           FFFFFF

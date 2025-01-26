@@ -1,0 +1,8 @@
+# github.com/SanjayVyas
+
+# Do not modify this file
+# @import it in the theme and redefine values
+
+[ tips ]
+segment_tips '  #tip '
+tips_decorator no_separator gray normal no_separator

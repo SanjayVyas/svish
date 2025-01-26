@@ -59,7 +59,10 @@ Some promplets auto-expand to reveal what the icons and counts mean.
 Some promplets will appear only when there is new/changed information to show.
 Some promplets will appear periodically.
 
-![alt text](image-1.png)
+![alt text](prompt.png)
 
 The sweet part is that they are 100% configurable using a template and set of flags
-![alt text](image-2.png)
+![alt text](segment.png)
+
+Writing a plugin is as easy as 1-2-3. Create a new file plugin_name.svish, write a single function svish_plugin_name. echo the output you want and drop it in plugins folder. Thats it!
+![alt text](plugin.png)

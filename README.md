@@ -53,3 +53,13 @@ Once you've set up svish, it should automatically be your default fish shell pro
 For any questions or feedback, feel free to reach out to the project maintainer.
 
 **Note:** Replace `svish.prompt you_know_what_to_put gmail.com` with the appropriate contact information.
+
+## Screenshots
+Some promplets auto-expand to reveal what the icons and counts mean.
+Some promplets will appear only when there is new/changed information to show.
+Some promplets will appear periodically.
+
+![alt text](image-1.png)
+
+The sweet part is that they are 100% configurable using a template and set of flags
+![alt text](image-2.png)

@@ -38,7 +38,7 @@
         ```bash
         cd ~/.config/fish/functions
         ```
-    *  **Create a symbolic link to the `svish_main.fish` file (copy this command):**
+    *  **Create a symbolic link to the `svish_prompt.fish` file (copy this command):**
         ```bash
         ln -s /path/to/svish/svish_main.fish fish_prompt.fish
         ```

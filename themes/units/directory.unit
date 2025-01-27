@@ -17,7 +17,7 @@ segment_directory '#path ┃ #perm  #dirs #files #links 󰟥#pipes �
 directory_home_decorator     black light_blue 
 directory_root_decorator     black light_purple 
 
-directory_simple_path           no
+    directory_simple_path       no
     directory_details           yes
     directory_devices           yes
     directory_dirs              yes
@@ -27,7 +27,7 @@ directory_simple_path           no
     directory_sockets           yes
     directory_perm              yes
     directory_style             full
-    directory_path_separator    ╱
+    directory_separator         
 
 owner_icon ''
 group_icon ''

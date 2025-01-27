@@ -24,7 +24,7 @@ function svish_directory
     if show $directory_simple_path
         set body (string replace '#path' (pwd) $body)
     else
-        set body (string replace -a '/' (get_value "$directory_path_separator") (string replace "#path" $rest_of_the_path $body))
+        set body (string replace -a '/' (get_value "$directory_separator") (string replace "#path" $rest_of_the_path $body))
     end
 
     # Do we show permissions - 👤rwx?
@@ -34,7 +34,7 @@ function svish_directory
     if show $directory_details
 
         # Get count of each type of file
-        set dir_list "$(ls -l)"
+        set dir_list (ls -l | string collect)
         set dirs_count (get_count "$dir_list" '^d')
         set files_count (get_count "$dir_list" '^-')
         set pipes_count (get_count "$dir_list" '^p')
@@ -62,7 +62,7 @@ function svish_directory
 end
 
 function get_count
-    echo (count (echo $argv[1] | grep -E $argv[2]))
+    echo (count (echo "$argv[1]" | grep -E $argv[2]))
 end
 
 function permissions_that_apply_to_me

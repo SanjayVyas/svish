@@ -15,10 +15,6 @@
 duration_decorator rounded_left white orange rounded_right
 duration_min 1000
 
-[ directory ]
-directory_details no
-directory_path_separator 
-
 [ prompt ]
 segment_prompt '#user'
     prompt_decorator                    none white black none

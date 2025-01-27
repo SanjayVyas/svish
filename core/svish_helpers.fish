@@ -229,7 +229,7 @@ function expanded_placeholder --description "#placeholder value body visibility"
     set is_it_time (math "$$count % 32")
     if [ $is_it_time -eq 1 -o $is_it_time -gt 3 ]
         if has_value "$value" && show $visible
-            set body (string replace -r -- "#$placeholder *" "$value" "$body")
+            set body (string replace -r -- "#$placeholder *" "$value " "$body")
         else
             set body (string replace -r ".?#$placeholder *" "" $body )
         end
@@ -238,8 +238,9 @@ function expanded_placeholder --description "#placeholder value body visibility"
         set body (string replace -r -- "#$placeholder *" "$placeholder $value ┊" "$body")
 
     else if [ $is_it_time -eq 3 ]
+        set replacement (string sub -s 1 -e1 $placeholder) "$value ┊"
 
-        set body (string replace -r -- "#$placeholder *" "$(string sub -s 1 -e1 $placeholder) $value ┊" "$body")
+        set body (string replace -r -- "#$placeholder *" "$replacement" "$body")
     end
 
     printf "%s" "$body"

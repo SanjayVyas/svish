@@ -223,29 +223,25 @@ function expanded_placeholder --description "#placeholder value body visibility"
     set body $argv[3]
     set visible $argv[4]
 
-
     set count svp_{$placeholder}_count
     set -q $count && set -g $count (math $$count + 1) || set -g $count 1
 
     set is_it_time (math "$$count % 32")
     if [ $is_it_time -eq 1 -o $is_it_time -gt 3 ]
         if has_value "$value" && show $visible
-            set body (string replace -r -- "#$placeholder *" "$value " "$body")
+            set body (string replace -r -- "#$placeholder *" "$value" "$body")
         else
-            set body (string replace -r ".#$placeholder *" "" $body )
+            set body (string replace -r ".?#$placeholder *" "" $body )
         end
     else if [ $is_it_time -eq 2 ]
 
         set body (string replace -r -- "#$placeholder *" "$placeholder $value ┊" "$body")
-        set -g svp_expansion_mode yes
 
     else if [ $is_it_time -eq 3 ]
 
         set body (string replace -r -- "#$placeholder *" "$(string sub -s 1 -e1 $placeholder) $value ┊" "$body")
-        set -g svp_expansion_mode yes
     end
-    # set body (string replace -r ' *┊ *$' '' $body)
-    # [ (string length (string trim $body)) -eq 0 ] && set body ""
+
     printf "%s" "$body"
 
 end

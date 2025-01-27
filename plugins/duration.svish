@@ -1,0 +1,10 @@
+function svish_duration
+    set body "#duration"
+    set duration $CMD_DURATION
+
+    set value 0
+    not set duration_min && set duration_min 10
+    set value ([ $duration -gt 10 ] && echo $duration || echo 0)
+    set body (expanded_placeholder "duration" "$value" "$body" "yes")
+    printf "%s" "$body"
+end

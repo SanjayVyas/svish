@@ -11,9 +11,24 @@
 @import themes/units/weather.unit
 @import themes/units/prompt.unit
 
-[ svish ]
-svish_left_prompt_1     segment_directory  gap segment_git 
-svish_left_prompt_2     segment_prompt
-svish_right_prompt      segment_exit none segment_process none segment_weather none segment_time
+[ duration ]
+duration_decorator rounded_left white orange rounded_right
+duration_min 1000
 
+[ directory ]
+directory_details no
+directory_path_separator 
+
+[ prompt ]
+segment_prompt '#user'
+    prompt_decorator                    none white black none
+    prompt_icon                         ''
+    prompt_user_color                   white
+    prompt_arrow_color                  white
+    prompt_change_color                 yes
+
+[ svish ]
+svish_left_prompt_1     segment_directory none segment_git 
+svish_left_prompt_2     segment_duration segment_prompt
+svish_right_prompt      segment_exit
 svish_blank_line_before yes

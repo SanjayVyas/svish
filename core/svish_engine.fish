@@ -163,7 +163,7 @@ end
 
 function svish_right_prompt
 
-    svish_command_completion_notification
+    # svish_command_completion_notification
 
     set segment_list
     for segment_name in $svish_right_prompt

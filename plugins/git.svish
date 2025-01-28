@@ -7,14 +7,14 @@ function svish_git
 
         # branch name is always shown
         set branch_name (get_branch_name)
-        set body (fixed_placeholder "branch" "$branch_name" "$body")
+        set body (replace_placeholder "branch" "$branch_name" "$body")
 
 
         # Replace the #remote placeholder with repo and icon, e.g. github 
         if show $git_remote_icon
             set name_icon (get_repo_name_icon)
             if [ -n "$name_icon" ]
-                set body (fixed_placeholder "remote" "#$name_icon[1]" "$body")
+                set body (replace_placeholder "remote" "#$name_icon[1]" "$body")
                 set body (expanded_placeholder "$name_icon[1]" "$name_icon[2]" "$body" "$git_remote_icon")
             end
         end

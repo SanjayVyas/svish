@@ -200,7 +200,7 @@ function svish_cleanup
         set --erase -g $var
     end
 
-    set --erase -g loaded_themes
+    set --erase -g svp_loaded_themes
 
     for fn in (functions | grep '^svish_')
         functions -e $fn

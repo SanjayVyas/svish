@@ -6,9 +6,10 @@ function svish_load_theme --description "Load user theme or definition unit"
     set theme_name ([ -z $argv[1] ] && echo "svish.theme" || echo $argv[1])
 
     if [ -f $svp_base_path/$theme_name ]
+
         # Avoid loading the same theme/unit multiple times
-        if not contains $theme_name $loaded_themes
-            set -g loaded_themes $loaded_themes $theme_name
+        if not contains $theme_name $svp_loaded_themes
+            set -g svp_loaded_themes $svp_loaded_themes $theme_name
 
             for line in (cat $svp_base_path/$theme_name 2>/dev/null)
 
@@ -67,6 +68,7 @@ function sanitize_prompt_line
 
     # 3. Remove contiguous connectors
     # segment_directory gap gap segment_git → segment_directory gap segment_git
+    
     set index 1
     while [ $index -lt (count $segment_list) ]
         if found "^segment_" in $segment_list[$index]
@@ -161,6 +163,7 @@ function get_value --description "Get value of a variable which contains another
 end
 
 function listify --description "Break a string into list, keeping quoted parts intact"
+    # Thanks github.com/rajch for this gem 👍
     string replace -ra -- "'([^']*)'" '$1' (string match -ra -- "'[^']*'|\S+" $argv)
 end
 
@@ -171,14 +174,11 @@ end
 
 function empty --description "Check if given argument is blank"
     set var $argv[1]
-    if not set -q $var || string length -q -- $var && [ "$var" = 0 ]
-        return 0
-    end
-    return 1
+    not set -q $var || string length -q -- $var && [ "$var" = 0 ]
 end
 
 function show --description "decide is a user setting is set to show or hide"
-    return (contains (string upper (string trim $argv[1])) "Y" "YES" "YEAH" "T" "TRUE" "SURE")
+    contains (string upper (string trim $argv[1])) "Y" "YES" "YEAH" "T" "TRUE" "SURE"
 end
 
 function call --description "safe way of calling functions, just in case they are not defined"
@@ -190,11 +190,14 @@ function log --description logger
 end
 
 function print --description "content fg bg"
-    set fg ( [ -z $argv[2] ] && echo normal || echo $argv[2])
-    set bg ( [ -z $argv[3] ] && echo normal || echo $argv[3])
+    set fg normal
+    [ -n $argv[2] ] && set fg $argv[2]
+
+    set bg normal
+    [ -n $argv[3] ] && set bg $argv[3]
 
     set_color $fg -b $bg
-    printf $argv[1]
+    printf "%s" "$argv[1]"
     set_color normal
 end
 
@@ -212,7 +215,7 @@ function color
     echo -e "\x1b[38;2;"$fg"m\x1b[48;2;"$bg"m"$text"\x1b[0m"
 end
 
-function fixed_placeholder --description "#placeholder value body"
+function replace_placeholder --description "#placeholder value body"
     string replace "#$argv[1]" "$argv[2]" "$argv[3]"
 end
 
@@ -244,11 +247,10 @@ function expanded_placeholder --description "#placeholder value body visibility"
     end
 
     printf "%s" "$body"
-
 end
 
 function remove_unused_placeholders
-    string replace -ar -- '#.+\s*$' '' $argv | tr -s ' '
+    string replace -ar -- '#.+\s*' ' ' $argv | tr -s ' '
 end
 
 function has_value

@@ -4,7 +4,10 @@ function svish_init
     set -q svish_variables_list || set -g svish_variables_list
 
     # Load from cache to save prompt execution time
-    load_theme_cache || svish_load_theme; save_theme_cache
+    if not load_theme_cache
+        svish_load_theme
+        save_theme_cache
+    end
 
     # Internal svish prompt counter to execute time interval things like weather promptlet
     set -q svp_prompt_count || set -g svp_prompt_count 0

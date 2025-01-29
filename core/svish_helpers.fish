@@ -39,6 +39,7 @@ function load_theme_cache
 end
 
 function save_theme_cache
+    echo > $svp_base_path/.cache
     for var in $svish_variables_list
         echo set -g $var \'$$var\' >>$svp_base_path/.cache
     end

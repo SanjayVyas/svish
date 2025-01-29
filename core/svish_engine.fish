@@ -45,8 +45,7 @@ function svish_left_prompt --description "Heart of the code, which parses prompt
     end
 
     # Prepare for launch
-     
-    show $svish_blank_line_before && printf "\n"
+    show $svish_blank_line_before_prompt && printf "\n"
     for prompt_line in $svish_prompt_lines
         set line {$prompt_line}_list
         render_prompt_line $$line
@@ -104,10 +103,10 @@ function render_prompt_line --description "Render each line of prompt segments"
 
     set index 1
     while true
-
+        
         set current_body $rendered_list[$index]
         [ -z $current_body ] && break
-
+        
         set current_decorator (get_value $rendered_list[(math $index + 1)])
 
         # Break the decorator -> '' 'FFFFFF' 'FF0000' ''
@@ -133,7 +132,6 @@ function render_prompt_line --description "Render each line of prompt segments"
             set prev_connector $rendered_list[(math $index - 1)]
             set prev_end (decorator_element $prev_decorator $END)
         end
-
         # No previous segment, so print this segment's begin block as it is
         if [ $prev_exists = yes ]
             [ $prev_connector = none ] && print $current_begin $current_bg black
@@ -141,7 +139,7 @@ function render_prompt_line --description "Render each line of prompt segments"
         else
             print $current_begin $current_bg black
         end
-
+        
         print $current_body $current_fg $current_bg
 
         if [ $next_exists = yes ]
@@ -165,7 +163,7 @@ function svish_right_prompt
 
     # svish_command_completion_notification
 
-    set segment_list
+    set segment_list ''
     for segment_name in $svish_right_prompt
 
         # Call init for plugins (not connectors)

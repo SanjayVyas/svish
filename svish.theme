@@ -12,8 +12,8 @@
 @import themes/units/prompt.unit
 
 [ svish ]
-svish_left_prompt_1     segment_directory gap segment_git 
+svish_left_prompt_1     segment_directory segment_git
 svish_left_prompt_2     segment_prompt
 svish_right_prompt      segment_exit 
 
-svish_blank_line_before yes
+svish_blank_line_before_prompt yes

@@ -28,7 +28,7 @@ function svish_directory
     end
 
     # Do we show permissions - 👤rwx?
-    set body (expanded_placeholder 'perm' (permissions_that_apply_to_me) "$body" "$directory_perm")  
+    set body (expand_placeholder 'perm' (permissions_that_apply_to_me) "$body" "$directory_perm")  
 
     # Check if we are to show directory details like number of dirs, files, etc.
     if show $directory_details
@@ -49,7 +49,7 @@ function svish_directory
 
             # Check individual flags whether to show the element
             set visible directory_{$placeholder}
-            set body (expanded_placeholder "$placeholder" $$placeholder_count $body $$visible )
+            set body (expand_placeholder "$placeholder" $$placeholder_count $body $$visible )
             set total_count (math $total_count + $$placeholder_count)
         end
 

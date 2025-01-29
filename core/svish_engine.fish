@@ -17,7 +17,7 @@ function svish_left_prompt --description "Heart of the code, which parses prompt
     # e.g.
     # svish_left_prompt_1 segment_directory overlap segment_git none segment_tips
     # svish_left_prompt_2 segment_exit none segment_prompt
-    set svish_prompt_lines (set | grep '^svish_left_prompt_[1-9]' | cut -d ' ' -f1 )
+    set svish_prompt_lines (set | string match --regex -- '^svish_left_prompt_[1-9]' | cut -d ' ' -f1 )
 
     # Load the plugins and initialize them (don't invoke them right now)
     for line in $svish_prompt_lines
@@ -58,7 +58,7 @@ end
 function render_prompt_line --description "Render each line of prompt segments"
 
     set segment_list $argv
-
+    log $segment_list
     # We need to pre-render all the segments
     # so that we know if some don't return body (e.g git in non repo dir)
     # This way we can remove segment/decorator/connectors from the list
@@ -68,6 +68,7 @@ function render_prompt_line --description "Render each line of prompt segments"
     while true
 
         set name $segment_list[$index]
+        log $name
         [ -z "$name" ] && break
 
         set plugin (string replace 'segment_' 'svish_' $name)
@@ -103,10 +104,10 @@ function render_prompt_line --description "Render each line of prompt segments"
 
     set index 1
     while true
-        
+
         set current_body $rendered_list[$index]
         [ -z $current_body ] && break
-        
+
         set current_decorator (get_value $rendered_list[(math $index + 1)])
 
         # Break the decorator -> '' 'FFFFFF' 'FF0000' ''
@@ -139,7 +140,7 @@ function render_prompt_line --description "Render each line of prompt segments"
         else
             print $current_begin $current_bg black
         end
-        
+
         print $current_body $current_fg $current_bg
 
         if [ $next_exists = yes ]
@@ -175,8 +176,7 @@ function svish_right_prompt
 
         set segment_list $segment_list $segment_name
     end
-
-    render_prompt_line $segment_list
+    render_prompt_line (listify $segment_list)
 end
 
 function svish_original_fish_prompt --description "Just in case we fail and user wants original prompt"

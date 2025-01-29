@@ -28,17 +28,15 @@ function svish_load_theme --description "Load user theme or definition unit"
     end
 end
 
-function sanitize_prompt_line
+function sanitize_prompt_line --description "Remove misspelt/duplicate/leading/trailing connectors"
 
-    # If some idiot (probably me) sends a single string instead of list of segments
-    # set segment_list (listify $argv)
-    [ -z "$argv" ] && return
     # Don't fall in the trap of empty list
-
-    # Sanitize the list - These can be skipped for better performance but will break the code if user gives incorrect svish_line_prompt
+    [ -z "$argv" ] && return
+    
+    # Sanitize the list - This function can be skipped for better performance but will break the code if user gives incorrect svish_line_prompt
     set connector_group '(gap|overlap|line|none)'
-
-    # Initially break up the string into a list
+    
+    # If some idiot (probably me) sends a single string instead of list of segments, break up the string into a list
     set segment_list (listify $argv)
 
     # 1. Remove all non-sense word except connector_group and segments
@@ -69,7 +67,7 @@ function sanitize_prompt_line
     printf "%s" "$segment_list"
 end
 
-function shift_prompt_to_end
+function shift_prompt_to_end --description "We can have only 1 prompt, that too at the end of last line"
 
     # Find out the number of prompt lines we have
     set prompt_lines (set | grep -o ^svish_left_prompt_[1-9])
@@ -147,7 +145,7 @@ function found --description "string_to_find in larger_string"
     string match -qer $argv[1] $argv[3]
 end
 
-function empty --description "Check if given argument is blank"
+function empty --description "Check if given argument is blank or 0"
     set var $argv[1]
     not set -q $var || string length -q -- $var && [ "$var" = 0 ]
 end
@@ -176,13 +174,13 @@ function print --description "content fg bg"
     set_color normal
 end
 
-function hex_to_rgb
+function hex_to_rgb --description "Convert FFFFFF to 255;255;255 for use in ASCII escape sequence"
     set hex (string match -r '^#?[0-9a-fA-F]{6}$' $argv)
     [ -z $hex ] && echo "" ||
         echo (math 0x(string sub -s 1 -e 2 $hex))";"(math 0x(string sub -s 3 -e 4 $hex))";"(math 0x(string sub -s 5 -e 6 $hex))
 end
 
-function color
+function color --description "To color part of the string"
     set text $argv[1]
     set fg (hex_to_rgb $argv[2])
     set bg (hex_to_rgb $argv[3])
@@ -194,7 +192,7 @@ function replace_placeholder --description "#placeholder value body"
     string replace "#$argv[1]" "$argv[2]" "$argv[3]"
 end
 
-function expanded_placeholder --description "#placeholder value body visibility"
+function expand_placeholder --description "#placeholder value body visibility"
 
     set placeholder (string trim $argv[1])
     set value $argv[2]
@@ -213,10 +211,10 @@ function expanded_placeholder --description "#placeholder value body visibility"
         end
     else if [ $is_it_time -eq 2 ]
 
-        set body (string replace -r -- "#$placeholder *" "$placeholder $value ┊" "$body")
+        set body (string replace -r -- "#$placeholder *" "$placeholder $value┊" "$body")
 
     else if [ $is_it_time -eq 3 ]
-        set replacement (string sub -s 1 -e1 $placeholder) "$value ┊"
+        set replacement (string sub -s 1 -e1 $placeholder) "$value┊"
 
         set body (string replace -r -- "#$placeholder *" "$replacement" "$body")
     end

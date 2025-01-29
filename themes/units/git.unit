@@ -4,7 +4,8 @@
 # @import it in the theme and redefine values
 
 [ git ]
-segment_git '  #remote  #branch ┃ #hash 󰜘#commits 󱔗#objects 󱓊#branches  󰡯#untracked #added 󱇧#modified 󰗨#deleted' 
+segment_git '  #remote #branch ⬆#level ┃ #hash 󰜘#commits 󱔗#objects 󱓊#branches  󰡯#untracked #added 󱇧#modified 󰗨#deleted' 
+
 git_decorator  black light_red 
 
     git_details                 yes
@@ -23,3 +24,4 @@ git_decorator  black light_red 
     git_clean_color             light_green
     git_staged_color            light_orange
     git_some_staged             yellow
+    git_directory_levels        yes

@@ -27,6 +27,7 @@ function svish_load_theme --description "Load user theme or definition unit"
         end
     end
 end
+
 function load_theme_cache
     set -q svp_theme_checksum || set -g svp_theme_checksum ""
     set checksum (md5sum_dir $svp_base_path/themes)
@@ -228,15 +229,14 @@ function expand_placeholder --description "#placeholder value body visibility"
         if has_value "$value" && show $visible
             set body (string replace -r -- "#$placeholder *" "$value " "$body")
         else
-            set body (string replace -r ".?#$placeholder *" "" $body )
+            set body (string replace -r ".?#$placeholder *" "" "$body" )
         end
     else if [ $is_it_time -eq 2 ]
 
         set body (string replace -r -- "#$placeholder *" "$placeholder $value┊" "$body")
 
     else if [ $is_it_time -eq 3 ]
-        set replacement (string sub -s 1 -e1 $placeholder) "$value┊"
-
+        set replacement (string sub -s 1 -e 1 $placeholder) "$value┊"
         set body (string replace -r -- "#$placeholder *" "$replacement" "$body")
     end
 
@@ -244,7 +244,7 @@ function expand_placeholder --description "#placeholder value body visibility"
 end
 
 function remove_unused_placeholders
-    string replace -ar -- '#.+\s*' ' ' $argv | tr -s ' '
+    string replace -ar -- '.?#.+\s*' ' ' $argv | tr -s ' '
 end
 
 function has_value

@@ -1,13 +1,18 @@
 # github.com/SanjayVyas
 
 function svish_git
-    if [ -d '.git' ]
+    
+    set level (git_dir_level)
+    if [  $level -ge 0 ]
 
         set body "$segment_git"
 
         # branch name is always shown
         set branch_name (get_branch_name)
         set body (replace_placeholder "branch" "$branch_name" "$body")
+
+        # Show how many levels up is the .git dir
+        [ $level -gt 0 ] && set body (expand_placeholder "level" "$level" "$body" "yes" )
 
         # Replace the #remote placeholder with repo and icon, e.g. github 
         if show $git_remote_icon
@@ -125,6 +130,13 @@ function get_branch_name
     printf "%s" "$branch_name"
 end
 
-function svish_git_cleanup
+function git_dir_level
+    set dir (pwd)
+    set counter 0
 
+    while [ ! -d $dir/.git ] && [ "$dir" != "/" ]
+        set dir (dirname $dir)
+        set counter (math $counter+1)
+    end
+    [ -d $dir/.git ] && echo $counter || echo -1
 end

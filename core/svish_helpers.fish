@@ -224,7 +224,6 @@ function expand_placeholder --description "#placeholder value body visibility"
 
     set count svp_{$placeholder}_count
     set -q $count && set -g $count (math $$count + 1) || set -g $count 1
-
     set is_it_time (math "$$count % 32")
     if [ $is_it_time -eq 1 -o $is_it_time -gt 3 ]
         if has_value "$value" && show $visible
@@ -245,7 +244,8 @@ function expand_placeholder --description "#placeholder value body visibility"
 end
 
 function remove_unused_placeholders
-    string replace -ar -- '.?#.+\s*' ' ' $argv | tr -s ' '
+    set body (string replace -ar -- '.?#\S*' ' ' "$argv" | tr -s ' ')
+    printf "%s" "$body"
 end
 
 function has_value

@@ -1,8 +1,7 @@
 
 function svish_load_theme --description "Load user theme or definition unit"
-
     set theme_name $argv[1]
-
+    log reload theme
     # if no theme/unit is provided, load svish.theme
     [ -z "$theme_name" ] && set theme_name "svish.theme"
     if [ -f $svp_base_path/$theme_name ]
@@ -21,7 +20,7 @@ function svish_load_theme --description "Load user theme or definition unit"
                 if [ -n $line ] && string match -rq '^[ a-zA-Z]' "$line"
                     set setting (listify $line)
                     set -g $setting
-                    
+
                     # Store all global variables in a list to that we can erase them
                     set -g svish_variables_list $svish_variables_list $setting[1]
                 end
@@ -29,15 +28,38 @@ function svish_load_theme --description "Load user theme or definition unit"
         end
     end
 end
+function load_theme_cache
+    set -q svp_theme_checksum || set -g svp_theme_checksum ""
+    set checksum (md5sum_dir $svp_base_path/themes)
+    log loaded $checksum
+    if [ $svp_theme_checksum = $checksum ] && [ -f $svp_base_path/.cache ]
+        source $svp_base_path/.cache
+        return 0
+    end
+    return 1
+end
+
+function save_theme_cache
+    for var in $svish_variables_list
+        echo set -g $var \'$$var\' >>$svp_base_path/.cache
+    end
+    set svp_theme_checksum (md5sum_dir $svp_base_path/themes)
+    log saved (count $svish_variables_list) checksum $svp_theme_checksum
+end
+
+function md5sum_dir --description "Calculate a single md5sum of all files in a directory"
+    find $svp_base_path/svish.theme $svp_base_path/themes -type f -exec md5sum {} + | sort | md5sum
+end
+
 
 function sanitize_prompt_line --description "Remove misspelt/duplicate/leading/trailing connectors"
 
     # Don't fall in the trap of empty list
     [ -z "$argv" ] && return
-    
+
     # Sanitize the list - This function can be skipped for better performance but will break the code if user gives incorrect svish_line_prompt
     set connector_group '(gap|overlap|line|none)'
-    
+
     # If some idiot (probably me) sends a single string instead of list of segments, break up the string into a list
     set segment_list (listify $argv)
 
@@ -51,16 +73,16 @@ function sanitize_prompt_line --description "Remove misspelt/duplicate/leading/t
     # 2. Remove leading connector_group [none gap segment_directory gap segment_git] becomes [segment_directory gap segment_git]
     # We do this be removing all characters up to the first segment_xxxxx (non greedily by using *.?)
     set segment_list (string replace -r '^.*?(\bsegment_\S+\b)' '$1' $segment_list)
-    
+
     # 2. Remove trailing connector_group [segment_directory gap segment_git none gap none] becomes [segment_directory gap segment_git]
     # Match greedily up to last segment_xxxx and remove whatever is trailing
     set segment_list (string replace -r '(.*)(\bsegment_\S+\b)(.*)' '$1$2' $segment_list)
-    
+
     # 3. Remove contiguous connector_group [segment_directory gap none segment_git] becomes [segment_directory gap segment_git]
     # Find a pair of connector (gap none or none none etc) and remove the second on, repeat
     while set segment_list (string replace -r "($connector_group).*(?:$connector_group)" '$1' $segment_list)
     end
-    
+
     # 4. Add default connector between segments
     # segment_directory segment_git → segment_directory overlap segment_git
     while set segment_list (string replace -r '(\bsegment_\S+\b)\s+(\bsegment_\S+\b)' '$1 overlap $2' $segment_list)
@@ -242,9 +264,5 @@ function domain_from_url
     set url (string replace -r '^.*@' '' $url)
     set url (string replace -r '/.*$' '' $url)
     set url (string replace -r '\.*' ' ' $url)
-    echo $url | tr -d ' '
-end
-
-function md5sum_dir --description "Calculate a single md5sum of all files in a directory"
-    find $svp_base_path/themes -type f -exec md5sum {} + | sort | md5sum
+    string trim $url
 end

@@ -1,12 +1,20 @@
 
 function svish_init
-    svish_load_theme
-    set -q svp_prompt_count || set -g svp_prompt_count 0
+    # Global list of variables for caching and usage across the script
     set -q svish_variables_list || set -g svish_variables_list
+
+    # Load from cache to save prompt execution time
+    load_theme_cache || svish_load_theme; save_theme_cache
+
+    # Internal svish prompt counter to execute time interval things like weather promptlet
+    set -q svp_prompt_count || set -g svp_prompt_count 0
+
+    # For quick fire promptlets which don't define their own decorator
     set -q default_decorator || set -g default_decorator ''
 end
 
 function svish_left_prompt --description "Heart of the code, which parses prompt lines and renders them"
+    
     # No point running the full jingbang if there is no svish.theme
     [ ! -f "$svp_base_path/svish.theme" ] && svish_original_fish_prompt && return
 
@@ -58,10 +66,11 @@ end
 function render_prompt_line --description "Render each line of prompt segments"
 
     set segment_list $argv
+
     # We need to pre-render all the segments
-    # so that we know if some don't return body (e.g git in non repo dir)
+    # so that we know if some don't return body (e.g git in non repo dir) or periodic promptlets like weather
     # This way we can remove segment/decorator/connectors from the list
-    set rendered_list
+    set promptlets_list
     set plugin_list
     set index 1
     while true
@@ -84,7 +93,7 @@ function render_prompt_line --description "Render each line of prompt segments"
         [ -z "$$decorator" ] && set decorator default_decorator
         set connector $segment_list[(math $index + 1)]
 
-        set rendered_list $rendered_list $body $decorator $connector
+        set promptlets_list $promptlets_list $body $decorator $connector
         set index (math $index + 2)
 
     end
@@ -103,10 +112,10 @@ function render_prompt_line --description "Render each line of prompt segments"
     set index 1
     while true
 
-        set current_body $rendered_list[$index]
+        set current_body $promptlets_list[$index]
         [ -z $current_body ] && break
 
-        set current_decorator (get_value $rendered_list[(math $index + 1)])
+        set current_decorator (get_value $promptlets_list[(math $index + 1)])
 
         # Break the decorator -> '' 'FFFFFF' 'FF0000' ''
         set current_begin (decorator_element $current_decorator $BEGIN)
@@ -116,10 +125,10 @@ function render_prompt_line --description "Render each line of prompt segments"
 
         # If it is not the last segment, get the next segments decorator (index + 2)
         set next_exists no
-        if [ (math $index + 3 ) -lt (count $rendered_list) ]
+        if [ (math $index + 3 ) -lt (count $promptlets_list) ]
             set next_exists yes
-            set next_decorator $rendered_list[(math $index + 4)]
-            set next_connector $rendered_list[(math $index + 2)]
+            set next_decorator $promptlets_list[(math $index + 4)]
+            set next_connector $promptlets_list[(math $index + 2)]
             set next_bg (decorator_element $next_decorator $BG)
         end
 
@@ -127,11 +136,11 @@ function render_prompt_line --description "Render each line of prompt segments"
         set prev_exists no
         if [ (math $index - 3) -ge 0 ]
             set prev_exists yes
-            set prev_decorator $rendered_list[(math $index - 2)]
-            set prev_connector $rendered_list[(math $index - 1)]
+            set prev_decorator $promptlets_list[(math $index - 2)]
+            set prev_connector $promptlets_list[(math $index - 1)]
             set prev_end (decorator_element $prev_decorator $END)
         end
-        
+
         # No previous segment, so print this segment's begin block as it is
         if [ $prev_exists = yes ]
             [ $prev_connector = none ] && print $current_begin $current_bg black

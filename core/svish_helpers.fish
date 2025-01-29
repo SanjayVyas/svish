@@ -1,7 +1,6 @@
 
 function svish_load_theme --description "Load user theme or definition unit"
     set theme_name $argv[1]
-    log reload theme
     # if no theme/unit is provided, load svish.theme
     [ -z "$theme_name" ] && set theme_name "svish.theme"
     if [ -f $svp_base_path/$theme_name ]
@@ -31,7 +30,6 @@ end
 function load_theme_cache
     set -q svp_theme_checksum || set -g svp_theme_checksum ""
     set checksum (md5sum_dir $svp_base_path/themes)
-    log loaded $checksum
     if [ $svp_theme_checksum = $checksum ] && [ -f $svp_base_path/.cache ]
         source $svp_base_path/.cache
         return 0
@@ -44,7 +42,6 @@ function save_theme_cache
         echo set -g $var \'$$var\' >>$svp_base_path/.cache
     end
     set svp_theme_checksum (md5sum_dir $svp_base_path/themes)
-    log saved (count $svish_variables_list) checksum $svp_theme_checksum
 end
 
 function md5sum_dir --description "Calculate a single md5sum of all files in a directory"

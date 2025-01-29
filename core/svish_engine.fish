@@ -58,7 +58,6 @@ end
 function render_prompt_line --description "Render each line of prompt segments"
 
     set segment_list $argv
-    log $segment_list
     # We need to pre-render all the segments
     # so that we know if some don't return body (e.g git in non repo dir)
     # This way we can remove segment/decorator/connectors from the list
@@ -68,7 +67,6 @@ function render_prompt_line --description "Render each line of prompt segments"
     while true
 
         set name $segment_list[$index]
-        log $name
         [ -z "$name" ] && break
 
         set plugin (string replace 'segment_' 'svish_' $name)
@@ -133,6 +131,7 @@ function render_prompt_line --description "Render each line of prompt segments"
             set prev_connector $rendered_list[(math $index - 1)]
             set prev_end (decorator_element $prev_decorator $END)
         end
+        
         # No previous segment, so print this segment's begin block as it is
         if [ $prev_exists = yes ]
             [ $prev_connector = none ] && print $current_begin $current_bg black

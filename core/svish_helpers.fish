@@ -1,5 +1,6 @@
 
 function svish_load_theme --description "Load user theme or definition unit"
+
     set theme_name $argv[1]
 
     # if no theme/unit is provided, load svish.theme
@@ -20,6 +21,7 @@ function svish_load_theme --description "Load user theme or definition unit"
                 if [ -n $line ] && string match -rq '^[ a-zA-Z]' "$line"
                     set setting (listify $line)
                     set -g $setting
+                    
                     # Store all global variables in a list to that we can erase them
                     set -g svish_variables_list $svish_variables_list $setting[1]
                 end
@@ -241,4 +243,8 @@ function domain_from_url
     set url (string replace -r '/.*$' '' $url)
     set url (string replace -r '\.*' ' ' $url)
     echo $url | tr -d ' '
+end
+
+function md5sum_dir --description "Calculate a single md5sum of all files in a directory"
+    find $svp_base_path/themes -type f -exec md5sum {} + | sort | md5sum
 end

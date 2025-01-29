@@ -13,13 +13,6 @@
 #   devices - Number of character/block devices
 #   sockets - Number of socket files
 
-#   directory_styles
-#   full     usr  local  bin
-#   short   /u/l/bin
-#   trail   …/bin
-#   ends    /u/…/bin
-#   cycle   switch between the style automatically
-
 [ directory ]
 segment_directory '#path ┃ #perm  #dirs #files #links 󰟥#pipes 󰾰#devices #sockets '
 directory_home_decorator     black light_blue 

@@ -245,6 +245,12 @@ function lookup --description "Lookup a list like a map 'key:value key:value ...
     printf "%s" $found[2]
 end
 
+function get_key_value --description "get key value by index from 'key:value key:value...'"
+    set index $argv[1]
+    set pairs (listify $argv[2])
+    printf (listify $pairs[$index])
+end
+
 function has_value
     set var $argv[1]
     if not set -q $var || string length -q -- $var && [ "$var" = 0 ]

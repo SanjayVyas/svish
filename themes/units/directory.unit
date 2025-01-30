@@ -17,6 +17,7 @@
 #   full     usr  local  bin
 #   short   /u/l/bin
 #   trail   …/bin
+#   middle  user󰇘bin
 #   cycle   switch between the style automatically
 
 [ directory ]
@@ -32,7 +33,7 @@ directory_root_decorator     black light_purple 
     directory_pipes             yes
     directory_sockets           yes
     directory_perm              yes
-    directory_style             trail
+    directory_style             cycle
     directory_separator         
 
 owner_icon ''

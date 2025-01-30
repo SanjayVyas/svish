@@ -2,6 +2,7 @@
 
 function svish_directory_init
     set -g directory_decorator
+    set -g svish_style_map "simple:simple_path full:full_path short:short_path trail:trail_path middle:middle_path"
 end
 
 function svish_directory
@@ -18,11 +19,12 @@ function svish_directory
     end
 
     # Poor man's lookup map
-    set style_map "simple:simple_path full:full_path short:short_path trail:trail_path middle:middle_path"
-    set style_generator (lookup $directory_style $style_map)
+    
+    set style_generator ([ $directory_style = "cycle" ] && echo "cycle_path" || lookup $directory_style $style_map)
     [ -z $style_generator ] && set style_generator full_path
+
     set path_style (call $style_generator (pwd))
-    set body (replace_placeholder 'path' "$path_style" "$body")
+    set body (string trim (replace_placeholder 'path' "$path_style" "$body"))
 
     # Do we show permissions - 👤rwx?
     set body (expand_placeholder 'perm' (permissions_that_apply_to_me) "$body" "$directory_perm")
@@ -80,6 +82,7 @@ function permissions_that_apply_to_me
 end
 
 function simple_path
+    log here
     set body "$argv"
     printf "%s" "$body"
 end
@@ -122,10 +125,25 @@ function trail_path
 end
 
 function middle_path
-    set initial (string match -eq "$HOME" "$argv" && echo "$HOME/" || echo "/")
+    set initial (string match -eq "$HOME" "$argv" && echo "$HOME" || echo "")
     set path (string replace "$initial" "" "$argv")
-    set first (string match -r '^(.*?)/' $path)
+    set first (string match -r '^/?(.*?)/' $path)
     set last (string match -r '.*/(.*)$' $path)
-    set body $first
+
+    [ -z "$first[2]" ] && [ -z "$last[2]" ] && set body ''
+    [ -n "$first[2]" ] && [ -z "$last[2]" ] && set body "$first[2]"
+    [ -z "$first[2]" ] && [ -n "$last[2]" ] && set body "$last[2]"
+    [ -n "$first[2]" ] && [ -n "$last[2]" ] && set body "$first[2]󰇘$last[2]"
+    
     printf "%s" "$body"
+end
+
+function cycle_path
+    set -q svp_cycle_path && set -g svp_cycle_path (math $svp_cycle_path + 1) || set -g svp_cycle_path 1
+    set path_style (get_key_value $svp_cycle_path $svish_style_map)
+    [ -z "$path_style" ] && set svp_cycle_path 1
+    set path_style (string split ':' (get_key_value $svp_cycle_path $svish_style_map))
+    set fn $path_style[2]
+    log $fn : $path_style[2]
+    printf "%s" (call $fn (pwd))
 end

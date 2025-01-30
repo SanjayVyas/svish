@@ -97,7 +97,7 @@ end
 function get_repo_name_icon --description "given remote url, return name and icon"
 
     # This can be loaded from an external file
-    set repo_list github "" gitlab "󰮠" bitbucket "󰂨"
+    set repo_map "github:  gitlab:󰮠 bitbucket:󰂨 sourceforge:󰈸"
     set repo_icon ''
     set repo_name "No Host"
 
@@ -110,10 +110,8 @@ function get_repo_name_icon --description "given remote url, return name and ico
     # repo_host e.g. github
     set repo_name (echo $repo_domain | cut -d '.' -f1)
 
-    # look up github in repo_list above and get the icon
-    set item (listify (string match -n $repo_name $repo_list))
-    set icon_index (math $item[1] + 1)
-    [ -n "$item" ] && set repo_icon $repo_list[ $icon_index ]
+    # look up github in repo_map above and get the icon
+    set repo_icon (lookup $repo_name $repo_map)
     printf "%s\n%s" "$repo_name" "$repo_icon"
 end
 

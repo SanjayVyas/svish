@@ -39,7 +39,7 @@ function load_theme_cache
 end
 
 function save_theme_cache
-    echo > $svp_base_path/.cache
+    echo >$svp_base_path/.cache
     for var in $svish_variables_list
         echo set -g $var \'$$var\' >>$svp_base_path/.cache
     end
@@ -49,7 +49,6 @@ end
 function md5sum_dir --description "Calculate a single md5sum of all files in a directory"
     find $svp_base_path/svish.theme $svp_base_path/themes -type f -exec md5sum {} + | sort | md5sum
 end
-
 
 function sanitize_prompt_line --description "Remove misspelt/duplicate/leading/trailing connectors"
 
@@ -116,21 +115,6 @@ function shift_prompt_to_end --description "We can have only 1 prompt, that too 
     end
 end
 
-function shorten_directory_path
-    set path (string replace $HOME '~' $argv)
-    set pathlets (string trim (string split '/' $path))
-    set dir $pathlets[-1]
-    set --erase pathlets[-1]
-
-    set body ''
-    for each in $pathlets
-        set how_many ( [ (string sub -s 1 -e 1 $each) = "." ] && echo 2 || echo 1)
-        set body $body(string sub -s 1 -e $how_many $each)'/'
-    end
-    set body $body$dir
-    printf "%s" "$body"
-end
-
 function svish_command_completion_notification
 
     if not contains $command_name vi bash
@@ -178,7 +162,7 @@ function show --description "decide is a user setting is set to show or hide"
 end
 
 function call --description "safe way of calling functions, just in case they are not defined"
-    functions -q $argv && $argv
+    functions -q $argv[1] && $argv[1] $argv[2..-1]
 end
 
 function log --description logger
@@ -246,6 +230,19 @@ end
 function remove_unused_placeholders
     set body (string replace -ar -- '.?#\S*' ' ' "$argv" | tr -s ' ')
     printf "%s" "$body"
+end
+
+function lookup --description "Lookup a list like a map 'key:value key:value ...'"
+
+    # First arg is the key to lookup
+    set key $argv[1]
+
+    # Remaining args is a string (or list) treated like a map
+    set map "$argv[2..-1]"
+
+    # search for (?:key):(value) and capture value (found[2])
+    set found (string match -r "(?:$argv[1]):(\S+)" $map)
+    printf "%s" $found[2]
 end
 
 function has_value

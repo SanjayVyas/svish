@@ -5,30 +5,27 @@ function svish_directory_init
 end
 
 function svish_directory
-    
+
     set body "$segment_directory"
 
     # Are we in home directory or elsewhere
     if string match -eq $HOME (pwd)
         set folder_icon $home_folder_icon
         set -g directory_decorator $directory_home_decorator
-        set skip_initial (math (string length $HOME) + 1)
     else
         set folder_icon $root_folder_icon
         set -g directory_decorator $directory_root_decorator
-        set skip_initial 2
     end
-    set rest_of_the_path (string sub -s "$skip_initial" (pwd) )
 
-    # Replace path with separators /usr/local/bin → usr > local > bin
-    if show $directory_simple_path
-        set body (string replace '#path' (pwd) $body)
-    else
-        set body (string replace -a '/' (get_value "$directory_separator") (string replace "#path" $rest_of_the_path $body))
-    end
+    # Poor man's lookup map
+    set style_map "simple:simple_path full:full_path short:short_path trail:trail_path middle:middle_path"
+    set style_generator (lookup $directory_style $style_map)
+    [ -z $style_generator ] && set style_generator full_path
+    set path_style (call $style_generator (pwd))
+    set body (replace_placeholder 'path' "$path_style" "$body")
 
     # Do we show permissions - 👤rwx?
-    set body (expand_placeholder 'perm' (permissions_that_apply_to_me) "$body" "$directory_perm")  
+    set body (expand_placeholder 'perm' (permissions_that_apply_to_me) "$body" "$directory_perm")
 
     # Check if we are to show directory details like number of dirs, files, etc.
     if show $directory_details
@@ -44,7 +41,7 @@ function svish_directory
 
         # Loop thru each type of file, replacing the placeholder in the string
         set total_count 0
-        for placeholder in "dirs" "files" "links" "pipes" "sockets" "devices"
+        for placeholder in dirs files links pipes sockets devices
             set placeholder_count {$placeholder}_count
 
             # Check individual flags whether to show the element
@@ -82,5 +79,53 @@ function permissions_that_apply_to_me
     printf "$permissions"
 end
 
-function svish_directory_cleanup
+function simple_path
+    set body "$argv"
+    printf "%s" "$body"
+end
+
+function full_path
+    set separator (get_value "$directory_separator")
+    set initial (string match -eq $HOME $argv && echo $HOME || echo '/')
+    set path (string replace "$initial" "" "$argv")
+    set body (string replace -a '/' "$separator" "$path")
+    printf "%s" "$body"
+end
+
+function short_path
+    set path (string replace $HOME '~' $argv)
+    set pathlets (string trim (string split '/' $path))
+    set dir $pathlets[-1]
+    set --erase pathlets[-1]
+
+    set body ''
+    for each in $pathlets
+        set how_many ( [ (string sub -s 1 -e 1 $each) = "." ] && echo 2 || echo 1)
+        set body $body(string sub -s 1 -e $how_many $each)'/'
+    end
+    set body $body$dir
+    printf "%s" "$body"
+end
+
+function trail_path
+    set initial (string match -eq $HOME $argv && echo $HOME || echo "/")
+    set seg (math (count (string split "/" $argv)) - 1)
+    set path (string replace "$initial" "" "$argv")
+    set last_path (string match -r '.*/(.*)' $path)
+    set body
+    if [ $seg -gt 1 ]
+        set body "$seg⇠/"$last_path[2]
+    else
+        set body "$path"
+    end
+    printf "%s" "$body"
+end
+
+function middle_path
+    set initial (string match -eq "$HOME" "$argv" && echo "$HOME/" || echo "/")
+    set path (string replace "$initial" "" "$argv")
+    set first (string match -r '^(.*?)/' $path)
+    set last (string match -r '.*/(.*)$' $path)
+    set body $first
+    printf "%s" "$body"
 end

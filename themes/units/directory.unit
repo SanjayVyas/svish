@@ -13,12 +13,17 @@
 #   devices - Number of character/block devices
 #   sockets - Number of socket files
 
+#   directory_styles
+#   full     usr  local  bin
+#   short   /u/l/bin
+#   trail   …/bin
+#   cycle   switch between the style automatically
+
 [ directory ]
 segment_directory '#path ┃ #perm  #dirs #files #links 󰟥#pipes 󰾰#devices #sockets '
 directory_home_decorator     black light_blue 
 directory_root_decorator     black light_purple 
 
-    directory_simple_path       no
     directory_details           yes  
     directory_devices           yes
     directory_dirs              yes
@@ -27,7 +32,7 @@ directory_root_decorator     black light_purple 
     directory_pipes             yes
     directory_sockets           yes
     directory_perm              yes
-    directory_style             full
+    directory_style             trail
     directory_separator         
 
 owner_icon ''

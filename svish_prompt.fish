@@ -1,8 +1,8 @@
 
 
 function fish_prompt
-    # Capture exit_value immediately
-    set -g exit_value $status
+    # Capture svish_exit_value immediately
+    set -g svish_exit_value $status
     
     # Run the engine
     set -g svp_base_path (dirname (realpath (status --current-filename)))

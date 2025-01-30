@@ -6,8 +6,8 @@ function svish_load_theme --description "Load user theme or definition unit"
     if [ -f $svp_base_path/$theme_name ]
 
         # Avoid loading the same theme/unit multiple times
-        if not contains $theme_name $svp_loaded_themes
-            set -g svp_loaded_themes $svp_loaded_themes $theme_name
+        if not contains $theme_name $svish_loaded_theme
+            set -g svish_loaded_theme $svish_loaded_theme $theme_name
             for line in (cat $svp_base_path/$theme_name 2>/dev/null)
                 # Look for included file
                 if string match -qr "^@import " $line
@@ -32,7 +32,10 @@ function load_theme_cache
     set -q svp_theme_checksum || set -g svp_theme_checksum ""
     set checksum (md5sum_dir $svp_base_path/themes)
     if [ $svp_theme_checksum = $checksum ] && [ -f $svp_base_path/.cache ]
-        source $svp_base_path/.cache
+        for line in (cat $svp_base_path/.cache)
+            eval $line
+            set -g svish_variables_list $svish_variables_list $setting[1] (listify $line)[3]
+        end
         return 0
     end
     return 1
@@ -122,7 +125,7 @@ function svish_command_completion_notification
         set excluded_commands_list (cat ./excluded commands 2>/dev/null)
         set command_name (history | head -1 | cut -d ' ' -f1)
 
-        set exit_status ( [ $exit_value -gt 0 ] && echo "⚠️ $exit_value" ||  echo  "👍")
+        set exit_status ( [ $svish_exit_value -gt 0 ] && echo "⚠️ $svish_exit_value" ||  echo  "👍")
         if [ $execution_duration -gt 30 ]
             terminal-notifier -title "$command_name Completed $exit_status" -message "The command took $execution_duration seconds" -sound Glass
         end

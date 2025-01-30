@@ -145,3 +145,7 @@ function cycle_path
     set fn $path_style[2]
     printf "%s" (call $fn (pwd))
 end
+
+function svish_directory_cleanup
+    set -e -g directory_decorator
+end

@@ -2,6 +2,7 @@
 function svish_init
     # Global list of variables for caching and usage across the script
     set -q svish_variables_list || set -g svish_variables_list
+    set -q svish_plugin_list || set -g svish_plugin_list
 
     # Load from cache to save prompt execution time
     if not load_theme_cache
@@ -17,7 +18,7 @@ function svish_init
 end
 
 function svish_left_prompt --description "Heart of the code, which parses prompt lines and renders them"
-    
+
     # No point running the full jingbang if there is no svish.theme
     [ ! -f "$svp_base_path/svish.theme" ] && svish_original_fish_prompt && return
 
@@ -45,6 +46,7 @@ function svish_left_prompt --description "Heart of the code, which parses prompt
             if found '^segment_' in $segment_name
                 set plugin (string replace 'segment_' '' $segment_name)
                 source $svp_base_path/plugins/$plugin.svish
+                set -g svish_plugin_list $svish_plugin_list $plugin
                 call svish_{$plugin}_init
             end
 
@@ -82,7 +84,7 @@ function render_prompt_line --description "Render each line of prompt segments"
         [ -z "$name" ] && break
 
         set plugin (string replace 'segment_' 'svish_' $name)
-        set plugin_list $plugin_list $plugin
+        set -g plugin_list $plugin_list $plugin
         set body (call $plugin)
 
         # Some plugins might not yield body due to error or like git not displaying in non-repo
@@ -164,9 +166,6 @@ function render_prompt_line --description "Render each line of prompt segments"
         # Skip to the next content
         set index (math $index + 3)
 
-        for plugin in $plugin_list
-            call {$plugin}_cleanup
-        end
     end
 
 end
@@ -199,6 +198,11 @@ end
 
 function svish_cleanup
 
+    # call plugins to clean themselves up
+    for plugin in $svish_plugin_list
+        call svish_{$plugin}_cleanup
+    end
+
     # Erase all settings loaded from themes
     for var in $svish_variables_list
         set -q $var && set --erase -g $var
@@ -209,7 +213,8 @@ function svish_cleanup
         set --erase -g $var
     end
 
-    set --erase -g svp_loaded_themes
+
+    set --erase -g svish_loaded_theme
 
     for fn in (functions | grep '^svish_')
         functions -e $fn

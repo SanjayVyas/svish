@@ -82,7 +82,6 @@ function permissions_that_apply_to_me
 end
 
 function simple_path
-    log here
     set body "$argv"
     printf "%s" "$body"
 end
@@ -144,6 +143,5 @@ function cycle_path
     [ -z "$path_style" ] && set svp_cycle_path 1
     set path_style (string split ':' (get_key_value $svp_cycle_path $svish_style_map))
     set fn $path_style[2]
-    log $fn : $path_style[2]
     printf "%s" (call $fn (pwd))
 end

@@ -366,4 +366,8 @@ function svish_cleanup
     end
 
     # Remove all functions
+    set svish_functions (functions | string match --regex '^svish_.*')
+    for fn in $svish_functions
+        functions --erase $fn
+    end
 end

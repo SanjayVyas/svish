@@ -12,12 +12,11 @@ function svish_init --description "Initialize global variables"
     # For quick fire promptlets which don't define their own decorator
     set -q default_decorator || set -g default_decorator ''
 
-        # Load from cache to save prompt execution time
-        if not load_theme_cache
-            svish_load_theme
-            save_theme_cache
-        end
-    
+    # Load from cache to save prompt execution time
+    if not load_theme_cache
+        svish_load_theme
+        save_theme_cache
+    end
 end
 
 function svish_render_left_prompt --description "Parse prompt lines and render them"
@@ -61,7 +60,7 @@ function parse_line --description "Recursive function to expand segments and inv
             set plugin (string replace --regex -- '^segment_' 'svish_' $item)
 
             # We need a list of all plugins to clean up later
-            set -g svp_plugin_list $svp_plugin_list $plugin
+            set -g svish_plugin_list $svish_plugin_list $plugin
 
             # Sometimes plugins may not be in their own dedicated source file, so ignore if file not founds
             source $svp_base_path/plugins/$name.svish 2>/dev/null
@@ -111,7 +110,6 @@ function render_prompt_line --description "Render each line of prompt segments"
     # We need to pre-render all the segments
     # so that we know if some don't return body (e.g git in non repo dir) or periodic promptlets like weather
     # This way we can remove segment/decorator/connectors from the list
-    set plugin_list
 
     set index 1
     while true
@@ -122,7 +120,6 @@ function render_prompt_line --description "Render each line of prompt segments"
 
         # Convert segment name to plugin name
         set plugin (string replace 'segment_' 'svish_' $name)
-        set -g plugin_list $plugin_list $plugin
         set body (call $plugin)
 
         # Some plugins might not yield body due to error or like git not displaying in non-repo
@@ -202,7 +199,6 @@ function render_prompt_line --description "Render each line of prompt segments"
 
         # Skip to the next content
         set index (math $index + 3)
-
     end
 
 end
@@ -217,27 +213,27 @@ function sanitize_prompt_line --description "Remove misspelt/duplicate/leading/t
 
     # If some idiot (probably me) sends a single string instead of list of segments, break up the string into a list
     set segment_list (listify $argv)
-    
+
     # 1. Remove all non-sense word except connector_group and segments
     # Pick each word (not the entire string) and check if it is not a connector or a segment, remove it
     set segment_list (string replace --regex "^(?:(?!$connector_group|segment_\S+).)*\$" '' $segment_list)
-    
+
     # convert the list into a string as remaining string replace need a single string
     set segment_list (echo $segment_list|string collect)
-    
+
     # 2. Remove leading connector_group [none gap segment_directory gap segment_git] becomes [segment_directory gap segment_git]
     # We do this be removing all characters up to the first segment_xxxxx (non greedily by using *.?)
     set segment_list (string replace --regex '^.*?(\bsegment_\S+\b)' '$1' $segment_list)
-    
+
     # 2. Remove trailing connector_group [segment_directory gap segment_git none gap none] becomes [segment_directory gap segment_git]
     # Match greedily up to last segment_xxxx and remove whatever is trailing
     set segment_list (string replace --regex '(.*)(\bsegment_\S+\b)(.*)' '$1$2' $segment_list)
-    
+
     # 3. Remove contiguous connector_group [segment_directory gap none segment_git] becomes [segment_directory gap segment_git]
     # Find a pair of connector (gap none or none none etc) and remove the second on, repeat
     while set segment_list (string replace --regex "($connector_group)+(?:$connector_group)" '$1' $segment_list)
     end
-    
+
     # 4. Add default connector between segments
     # segment_directory segment_git → segment_directory overlap segment_git
     while set segment_list (string replace --regex '(\bsegment_\S+\b)\s+(\bsegment_\S+\b)' '$1 overlap $2' $segment_list)
@@ -259,8 +255,8 @@ function shift_prompt_to_end --description "We can have only 1 prompt, that too 
             echo $line
             set index (math $index + 1)
         end
-        
-        if found 'segment_prompt' in $prompt_list[$index]
+
+        if found segment_prompt in $prompt_list[$index]
             set line (string replace --regex '\bsegment_prompt\b' '' $prompt_list[$index])'segment_prompt'
             echo $line
         end
@@ -352,4 +348,22 @@ function decorator_element --description "Extract different elements of a decora
 end
 
 function svish_cleanup
+
+    # Call all plugin cleanup
+    for plugin in $svish_plugin_list
+        call {$plugin}_cleanup 2>/dev/null
+    end
+
+    # Remove all settings variables
+    for var in $svish_variables_list
+        set --erase -g $var 2>/dev/null
+    end
+
+    # Remove all global variables
+    set global_vars (set | string match --regex '^svish_\S+')
+    for var in $global_vars
+        set -q $var && set --erase -g $var 2>/dev/null
+    end
+
+    # Remove all functions
 end

@@ -1,0 +1,113 @@
+function svish_jsframeworks_init
+
+end
+
+function svish_jsframeworks_expand
+
+    if [ -f package.json ]
+
+        # Load package.json so that we can avoid repeated disk access
+        set -g json (cat package.json)
+
+        # Build the segment list based on which frameworks are present
+        set segment_list segment_node
+
+        # Start setting decorator for each sub segments
+        set -g node_decorator  black green 
+        set last_decorator node_decorator
+
+        # Angular 
+        if [ -f angular.json ]
+            set segment_list $segment_list overlap segment_angular
+            set {$last_decorator}[4] 
+            set -g angular_decorator  black orange 
+            set last_decorator angular_decorator
+        end
+
+        # React
+        set -g react_version (echo $json | jq -r '.dependencies.react' 2>/dev/null)
+        if [ $react_version != null ]
+            set segment_list $segment_list overlap segment_react
+            set {$last_decorator}[4] 
+            set -g react_decorator  white blue 
+            set last_decorator react_decorator
+        end
+
+        # Vue
+        set -g vue_version (echo $json | jq -r '.dependencies.vue' 2>/dev/null)
+        if [ $vue_version != null ]
+            set segment_list $segment_list overlap segment_vue
+            set {$last_decorator}[4] 
+            set -g vue_decorator  black light_green 
+             set last_decorator vue_decorator
+        end
+
+        set -g svelte_version (echo $json | jq -r '.devDependencies.svelte' 2>/dev/null)
+        if [ $svelte_version != null ]
+            set segment_list $segment_list overlap segment_svelte
+            set {$last_decorator}[4] 
+            set -g svelte_decorator  red white 
+            set last_decorator svelte_version
+        end
+
+        echo $segment_list
+    end
+
+    function svish_jsframeworks
+
+    end
+
+    function svish_node
+        if [ -n "$json" ]
+            if type node &>/dev/null
+                set node_icon 󰎙
+                set node_version (node --version | string match --regex '^v(\d+\.\d+)\.*')[2]
+                set body "$node_icon $node_version"
+            end
+        end
+        printf "%s" "$body"
+    end
+end
+
+function svish_angular
+    if [ -f angular.json ]
+        set ng_version (echo $json | jq -r '.dependencies["@angular/core"]' 2>/dev/null)
+        set ng_icon 
+        set ng_version (string match --regex '^\^(\d+.\d+)\.' $ng_version)[2]
+        set body "$ng_icon $ng_version"
+    end
+    printf "%s" $body
+end
+
+function svish_react
+    if [ $react_version != null ]
+        set react_icon 󰜈
+        set react_version (string match --regex '^\^(\d+.\d+)\.' $react_version)[2]
+        set body "$react_icon $react_version"
+    end
+    printf "%s" $body
+end
+
+function svish_vue
+    if [ $vue_version != null ]
+        set vue_icon 󰡄
+        set vue_version (string match --regex '^\^(\d+.\d+)\.' $vue_version)[2]
+        set body "$vue_icon $vue_version"
+    end
+    printf "%s" $body
+end
+
+function svish_svelte
+    if [ $svelte_version != null ]
+        set svelte_icon 
+        set svelte_version (string match --regex '^\^(\d+.\d+)\.' $svelte_version)[2]
+        set body "$svelte_icon $svelte_version"
+    end
+    printf "%s" $body
+end
+
+
+function svish_jsframeworks_cleanup
+    debug called
+    set --erase -g node_decorator angular_decorator
+end

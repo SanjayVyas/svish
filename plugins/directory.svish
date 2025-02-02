@@ -1,6 +1,7 @@
 # github.com/SanjayVyas
 
 function svish_directory_init
+
     set -g directory_decorator
     set -g svish_style_map "simple:simple_path full:full_path short:short_path trail:trail_path middle:middle_path"
 end
@@ -19,7 +20,7 @@ function svish_directory
     end
 
     # Poor man's lookup map
-    
+
     set style_generator ([ $directory_style = "cycle" ] && echo "cycle_path" || lookup $directory_style $style_map)
     [ -z $style_generator ] && set style_generator full_path
 
@@ -27,7 +28,11 @@ function svish_directory
     set body (string trim (replace_placeholder 'path' "$path_style" "$body"))
 
     # Do we show permissions - 👤rwx?
-    set body (expand_placeholder 'perm' (permissions_that_apply_to_me) "$body" "$directory_perm")
+    if show $directory_permission
+        set body (expand_placeholder 'perm' (permissions_that_apply_to_me) "$body" "$directory_perm")
+    else
+        set body (string replace --regex '┃.*' '┃' $body )
+    end
 
     # Check if we are to show directory details like number of dirs, files, etc.
     if show $directory_details
@@ -53,9 +58,9 @@ function svish_directory
         end
 
         # If there were no files in the dir, remove the trailing 
-        [ $total_count -eq 0 ] && set body (string replace -r '.*' '' $body )
+        [ $total_count -eq 0 ] && set body (string replace --regex '.*' '' $body )
     else
-        set body (string replace -r '┃.*' '' $body )
+        set body (string replace --regex '┃.*' '' $body )
     end
     printf "$folder_icon$body"
 end
@@ -72,7 +77,7 @@ function permissions_that_apply_to_me
 
     if [ "$dir_owner" = $current_owner ]
         set permissions $owner_icon (echo $dir_details| cut -c2-4)
-    else if string match -e $dir_group (groups $current_owner) &>/dev/null
+    else if string match --exact$dir_group (groups $current_owner) &>/dev/null
         set permissions $group_icon (echo $dir_details | cut -c5-7)
     else
         set permissions $world_icon (echo $dir_details | cut -c8-10)
@@ -113,7 +118,7 @@ function trail_path
     set initial (string match -eq $HOME $argv && echo $HOME || echo "/")
     set seg (math (count (string split "/" $argv)) - 1)
     set path (string replace "$initial" "" "$argv")
-    set last_path (string match -r '.*/(.*)' $path)
+    set last_path (string match --regex '.*/(.*)' $path)
     set body
     if [ $seg -gt 1 ]
         set body "$seg⇠/"$last_path[2]
@@ -126,14 +131,14 @@ end
 function middle_path
     set initial (string match -eq "$HOME" "$argv" && echo "$HOME" || echo "")
     set path (string replace "$initial" "" "$argv")
-    set first (string match -r '^/?(.*?)/' $path)
-    set last (string match -r '.*/(.*)$' $path)
+    set first (string match --regex '^/?(.*?)/' $path)
+    set last (string match --regex '.*/(.*)$' $path)
 
     [ -z "$first[2]" ] && [ -z "$last[2]" ] && set body ''
     [ -n "$first[2]" ] && [ -z "$last[2]" ] && set body "$first[2]"
     [ -z "$first[2]" ] && [ -n "$last[2]" ] && set body "$last[2]"
     [ -n "$first[2]" ] && [ -n "$last[2]" ] && set body "$first[2]󰇘$last[2]"
-    
+
     printf "%s" "$body"
 end
 

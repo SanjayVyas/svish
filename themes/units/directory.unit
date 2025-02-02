@@ -32,8 +32,8 @@ directory_root_decorator     black light_purple 
     directory_links             yes
     directory_pipes             yes
     directory_sockets           yes
-    directory_perm              yes
-    directory_style             cycle
+    directory_perm              no
+    directory_style             full
     directory_separator         
 
 owner_icon ''

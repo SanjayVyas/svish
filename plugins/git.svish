@@ -41,7 +41,7 @@ function svish_git
                 set body (expand_placeholder "$placeholder" "$$placeholder" "$body" "$$placeholder_flag")
             end
         else
-            set body (string replace -r "┃.*" "" $body)
+            set body (string replace --regex "┃.*" "" $body)
         end
         
         set total 0
@@ -59,9 +59,9 @@ function svish_git
                 set total (math $total + $$placeholder)
             end
             
-            [ $total -eq 0 ] && set body (string replace -r ' *$' '' $body)
+            [ $total -eq 0 ] && set body (string replace --regex ' *$' '' $body)
         else
-            set body (string replace -r ' *$' '' $body)
+            set body (string replace --regex ' *$' '' $body)
         end
         
         # segment color 

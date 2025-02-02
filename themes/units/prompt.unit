@@ -5,7 +5,7 @@
 
 [ prompt ]
 segment_prompt '#icon#user@#host'
-    prompt_decorator                    none white black none
+    prompt_decorator                    none white normal none
     prompt_icon                         ''
     prompt_user_icon                    ''
     prompt_user_color                   yellow

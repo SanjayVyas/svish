@@ -1,6 +1,6 @@
 # github.com/SanjayVyas
 
-function svish_prompt --description "THe actual prompt '>'' part"
+function svish_prompt --description "The actual prompt '>'' part"
     set body "$segment_prompt"
 
     # User icon

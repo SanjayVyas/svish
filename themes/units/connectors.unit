@@ -3,28 +3,28 @@
 # Do not modify this file
 # @import it in the theme and redefine values
 
-[ connectors ]
-arrow_left          
-arrow_right         
-rounded_left        
-rounded_right       
-slant_east_right    
-slant_east_left     
-slant_west_right    
-slant_west_left     
-fire_left          
-fire_right          
-pixel_left         
-pixel_right         
-dixel_left         
-dixel_right         
+[ CONNECTORS ]
+ARROW_LEFT          
+ARROW_RIGHT         
+ROUNDED_LEFT        
+ROUNDED_RIGHT       
+SLANT_EAST_RIGHT    
+SLANT_EAST_LEFT     
+SLANT_WEST_RIGHT    
+SLANT_WEST_LEFT     
+FIRE_LEFT          
+FIRE_RIGHT          
+PIXEL_LEFT         
+PIXEL_RIGHT         
+DIXEL_LEFT         
+DIXEL_RIGHT         
 
-[ separators ]
-arrow_separator     
-vertical_separator  │
-fslash_separator    ╱
-bslash_separator    ╲
-fat_separator       ┃
-no_separator        ''
-none                ''
-dotted_divider      
+[ SEPARATORS ]
+ARROW_SEPARATOR     
+VERTICAL_SEPARATOR  │
+FSLASH_SEPARATOR    ╱
+BSLASH_SEPARATOR    ╲
+FAT_SEPARATOR       ┃
+NO_SEPARATOR        ''
+NONE                ''
+DOTTED_DIVIDER      

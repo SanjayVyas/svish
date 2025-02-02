@@ -6,7 +6,7 @@
 [ git ]
 segment_git '  #remote #branch ⬆#level ┃ #hash 󰜘#commits 󱔗#objects 󱓊#branches  󰡯#untracked #added 󱇧#modified 󰗨#deleted' 
 
-git_decorator  black light_red 
+git_decorator  BLACK LIGHT_REd 
 
     git_details                 yes
     git_remote_icon             yes
@@ -20,8 +20,8 @@ git_decorator  black light_red 
     git_modified                yes
     git_deleted                 yes
     git_change_color_on_status  yes
-    git_dirty_color             light_red
-    git_clean_color             light_green
-    git_staged_color            light_orange
-    git_some_staged             yellow
+    git_dirty_color             LIGHT_RED
+    git_clean_color             LIGHT_GREEN
+    git_staged_color            LIGHT_ORANGE
+    git_some_staged             YELLOW
     git_directory_levels        yes

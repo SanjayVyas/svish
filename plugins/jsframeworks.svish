@@ -1,9 +1,9 @@
 function svish_jsframeworks_init
-    set -g node_decorator  black green 
-    set -g angular_decorator  black orange 
-    set -g react_decorator  white blue 
-    set -g vue_decorator  black light_green 
-    set -g svelte_decorator  red white 
+    set -g node_decorator  BLACK GREEN 
+    set -g angular_decorator  BLACK ORANGE 
+    set -g react_decorator  WHITE BLUE 
+    set -g vue_decorator  BLACK LIGHT_GREEN 
+    set -g svelte_decorator  RED WHITE 
 end
 
 function svish_jsframeworks_expand
@@ -107,5 +107,6 @@ end
 
 
 function svish_jsframeworks_cleanup
-    set --erase -g node_decorator angular_decorator react_decorator vue_decorator svelte_decorator
+    set --erase -g json node_decorator angular_decorator react_decorator vue_decorator svelte_decorator
+    set --erase -g react_version vue_version svelte_version
 end

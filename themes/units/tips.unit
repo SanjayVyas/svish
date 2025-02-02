@@ -5,4 +5,4 @@
 
 [ tips ]
 segment_tips '  #tip '
-tips_decorator no_separator gray normal no_separator
+tips_decorator NO_SEPARATOR GRAY NORMAL NO_SEPARATOR

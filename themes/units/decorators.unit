@@ -6,4 +6,4 @@
 @import themes/units/colors.unit
 @import themes/units/connectors.unit
 
-default_decorator none black white none
+default_decorator NONE BLACK WHITE NONE

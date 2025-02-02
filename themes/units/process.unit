@@ -8,6 +8,6 @@
 
 [ process ]
 segment_process ' #processes 󰀿#jobs'
-process_decorator  dixel_left black peach dixel_right
+process_decorator  DIXEL_LEFT BLACK PEACH DIXEL_RIGHT
     process_process         yes
     process_job             yes

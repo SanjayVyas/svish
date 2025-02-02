@@ -4,7 +4,7 @@
 # @import it in the theme and redefine values
 
 [ weather ]
-weather_decorator  white blue 
+weather_decorator  WHITE BLUE 
     weather_city ' Mumbai'
     weather_unit 'C'
     weather_refresh_interval 1

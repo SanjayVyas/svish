@@ -264,10 +264,10 @@ function shift_prompt_to_end --description "We can have only 1 prompt, that too 
 end
 
 function svish_original_fish_prompt --description "Just in case we fail and user wants original prompt"
-    print (whoami) green normal
-    print @(echo $hostname | cut -d'.' -f1)' ' white normal
-    print (prompt_pwd) cyan normal
-    print '> ' white normal
+    print (whoami) GREEN NORMAL
+    print @(echo $hostname | cut -d'.' -f1)' ' WHITE NORMAL
+    print (prompt_pwd) CYAN NORMAL
+    print '> ' WHITE NORMAL
 end
 
 function svish_load_theme --description "Load user theme or definition unit"

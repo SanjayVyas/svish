@@ -5,4 +5,4 @@
 
 [ exit ]
 segment_exit ' ⚠️ #exit_value '
-exit_decorator  white red  
+exit_decorator  WHITE RED  

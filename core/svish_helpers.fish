@@ -1,4 +1,4 @@
-
+# github.com/SanjayVyas
 
 function get_value --description "Get value of a variable which contains another variable name"
     # set name "Angular"; set var name; # get_value var -> Angular

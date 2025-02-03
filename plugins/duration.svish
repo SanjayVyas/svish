@@ -1,6 +1,8 @@
+# github.com/SanjayVyas
+
 function svish_duration_init
     set -q segment_duration || set -g segment_duration "⏱️#duration"
-    set -q duration_decorator || set -g duration_decorator  WHITE RED 
+    set -q duration_decorator || set -g duration_decorator  BLACK PEACH 
 end
 
 function svish_duration
@@ -11,7 +13,7 @@ function svish_duration
     set lapse (math --scale=0 "($duration / 1000)")
     set value ([ "$lapse" -gt "$duration_minimum" ] && echo $lapse || echo 0)
     set body (expand_placeholder "duration" "$value" "$body" "yes")
-    
+
     printf "%s" "$body"
 end
 

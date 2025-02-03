@@ -1,4 +1,5 @@
 
+# github.com/SanjayVyas
 
 function fish_prompt
     # Capture svish_exit_value immediately
@@ -16,3 +17,4 @@ function fish_right_prompt
     svish_render_right_prompt
     svish_cleanup
 end
+    

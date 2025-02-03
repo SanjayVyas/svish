@@ -1,3 +1,5 @@
+# github.com/SanjayVyas
+
 function svish_jsframeworks_init
     set -g node_decorator  BLACK GREEN 
     set -g angular_decorator  BLACK ORANGE 

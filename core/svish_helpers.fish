@@ -81,9 +81,9 @@ function expand_placeholder --description "#placeholder value body visibility"
 
     if not show $svish_expand_promplets
         if not empty "$value" && show $visible
-            set body (string replace --regex -- "#$placeholder *" "$value " "$body")
+            set body (string replace --regex -- "#$placeholder\b" "$value" "$body")
         else
-            set body (string replace --regex ".?#$placeholder *" "" "$body" )
+            set body (string replace --regex "\S+#$placeholder *" "" "$body" )
         end
     else
         set count svp_{$placeholder}_count

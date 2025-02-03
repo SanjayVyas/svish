@@ -1,0 +1,9 @@
+# github.com/SanjayVyas
+
+# Do not modify this file
+# @import it in the theme and redefine values
+
+[ duration ]
+segment_duration '⏱️#duration'
+duration_decorator   WHITE RED 
+duration_minimum    1

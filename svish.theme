@@ -13,7 +13,7 @@
 
 [ svish ]
 svish_left_prompt_1     segment_directory gap segment_git 
-svish_left_prompt_2     segment_prompt
+svish_left_prompt_2     segment_duration none segment_prompt
 svish_right_prompt      segment_exit none segment_jsframeworks
 
 svish_expand_promptlets no

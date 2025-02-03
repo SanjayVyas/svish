@@ -21,7 +21,7 @@ function svish_directory
 
     # Poor man's lookup map
 
-    set style_generator ([ $directory_style = "cycle" ] && echo "cycle_path" || lookup $directory_style $style_map)
+    set style_generator ([ $directory_style = "cycle" ] && echo "cycle_path" || lookup $directory_style $svish_style_map)
     [ -z $style_generator ] && set style_generator full_path
 
     set path_style (call $style_generator (pwd))

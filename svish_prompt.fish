@@ -6,9 +6,9 @@ function fish_prompt
     set -g svish_exit_value $status
     
     # Run the engine
-    set -g svp_base_path (dirname (realpath (status --current-filename)))
-    source $svp_base_path/core/svish_engine.fish
-    source $svp_base_path/core/svish_helpers.fish
+    set -g svish_base_path (dirname (realpath (status --current-filename)))
+    source $svish_base_path/core/svish_engine.fish
+
     svish_init
     svish_render_left_prompt
 end

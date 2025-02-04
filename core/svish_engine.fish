@@ -1,13 +1,14 @@
 function svish_init --description "Initialize global variables"
+    source $svish_base_path/core/svish_helpers.fish
+    
+    # Single state of the engine and all its plugins for storing in env, instead of polluting with dozens of env variables
+    set -q svp_svish_state || set -g svp_svish_state
 
     # Needed for removing all variables from env at the end
     set -q svish_variables_list || set -g svish_variables_list
 
     # Needed to invoke plugin_cleanup
-    set -q svish_plugin_list || set -g svish_plugin_list
-
-    # Internal svish prompt counter to execute time interval things like weather promptlet
-    set -q svp_prompt_count || set -g svp_prompt_count 0
+    set -q svish_plugin_list || set -g svish_plugin_list ""
 
     # For quick fire promptlets which don't define their own decorator
     set -q default_decorator || set -g default_decorator ''
@@ -22,7 +23,7 @@ end
 function svish_render_left_prompt --description "Parse prompt lines and render them"
 
     # No point running the full jingbang if there is no svish.theme
-    [ ! -f "$svp_base_path/svish.theme" ] && svish_original_fish_prompt && return
+    [ ! -f "$svish_base_path/svish.theme" ] && svish_original_fish_prompt && return
 
     show $svish_blank_line_before_prompt && printf "\n"
 
@@ -38,7 +39,7 @@ function svish_render_left_prompt --description "Parse prompt lines and render t
     end
 
     # In case, promplets want to activate on specific prompt count
-    set svp_prompt_count (math $svp_prompt_count + 1)
+    save_state svp_prompt_count $svp_prompt_count
 end
 
 function svish_render_right_prompt --description "Few segments might go to right side"
@@ -63,7 +64,7 @@ function parse_line --description "Recursive function to expand segments and inv
             set -g svish_plugin_list $svish_plugin_list $plugin
 
             # Sometimes plugins may not be in their own dedicated source file, so ignore if file not founds
-            source $svp_base_path/plugins/$name.svish 2>/dev/null
+            source $svish_base_path/plugins/$name.svish 2>/dev/null
 
             # Initialize the plugin and check if it expands to more segment (e.g segment_jsframeworks → segment_node overlap segment_angular)
             call {$plugin}_init
@@ -274,12 +275,12 @@ function svish_load_theme --description "Load user theme or definition unit"
     set theme_name $argv[1]
     # if no theme/unit is provided, load svish.theme
     [ -z "$theme_name" ] && set theme_name "svish.theme"
-    if [ -f $svp_base_path/$theme_name ]
+    if [ -f $svish_base_path/$theme_name ]
 
         # Avoid loading the same theme/unit multiple times
         if not contains $theme_name $svish_loaded_theme
             set -g svish_loaded_theme $svish_loaded_theme $theme_name
-            for line in (cat $svp_base_path/$theme_name 2>/dev/null)
+            for line in (cat $svish_base_path/$theme_name 2>/dev/null)
                 # Look for included file
                 if string match -qr "^@import " $line
                     set theme_name (string replace '@import ' '' $line)
@@ -303,10 +304,10 @@ function load_theme_cache --description "Load cache if it exists"
     set -q svp_theme_checksum || set -g svp_theme_checksum ""
 
     # Checksum the themes directory so that if any file changes, we recreate the cache
-    set checksum (md5sum_dir $svp_base_path/svish.theme $svp_base_path/themes)
+    set checksum (md5sum_dir $svish_base_path/svish.theme $svish_base_path/themes)
 
-    if [ $svp_theme_checksum = $checksum ] && [ -f $svp_base_path/.cache ]
-        for line in (cat $svp_base_path/.cache)
+    if [ $svp_theme_checksum = $checksum ] && [ -f $svish_base_path/.cache ]
+        for line in (cat $svish_base_path/.cache)
             eval $line
 
             # store the variables in a list so that we can cleanup from env on prompt end
@@ -318,25 +319,11 @@ function load_theme_cache --description "Load cache if it exists"
 end
 
 function save_theme_cache --description "Save all theme variables in a cache"
-    echo >$svp_base_path/.cache
+    echo >$svish_base_path/.cache
     for var in $svish_variables_list
-        echo set -g $var \'$$var\' >>$svp_base_path/.cache
+        echo set -g $var \'$$var\' >>$svish_base_path/.cache
     end
-    set svp_theme_checksum (md5sum_dir $svp_base_path/svish.theme $svp_base_path/themes)
-end
-
-function svish_command_completion_notification
-
-    if not contains $command_name vi bash
-        set execution_duration (math $CMD_DURATION / 1000)
-        set excluded_commands_list (cat ./excluded commands 2>/dev/null)
-        set command_name (history | head -1 | cut -d ' ' -f1)
-
-        set exit_status ( [ $svish_exit_value -gt 0 ] && echo "⚠️ $svish_exit_value" ||  echo  "👍")
-        if [ $execution_duration -gt 30 ]
-            terminal-notifier -title "$command_name Completed $exit_status" -message "The command took $execution_duration seconds" -sound Glass
-        end
-    end
+    set svp_theme_checksum (md5sum_dir $svish_base_path/svish.theme $svish_base_path/themes)
 end
 
 function decorator_element --description "Extract different elements of a decorator →  black white "
@@ -370,4 +357,12 @@ function svish_cleanup
     for fn in $svish_functions
         functions --erase $fn
     end
+end
+
+function save_state
+    set key $argv[1]
+    set value $argv[2..-1]
+
+    set svp_svish_state (map_put $key $value $svp_svish_state)
+    debug $key $value $svp_svish_state
 end

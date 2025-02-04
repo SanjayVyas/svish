@@ -1,4 +1,5 @@
 # github.com/SanjayVyas
+source $svish_base_path/core/svish_map.fish
 
 function get_value --description "Get value of a variable which contains another variable name"
     # set name "Angular"; set var name; # get_value var -> Angular
@@ -36,11 +37,11 @@ function call --description "safe way of calling functions, just in case they ar
 end
 
 function log --description logger
-    printf "%s:\t%s\n" (date '+%y-%m-%d %H:%M:%S') "$argv" >>$svp_base_path/logs/svish.log
+    printf "%s:\t%s\n" (date '+%y-%m-%d %H:%M:%S') "$argv" >>$svish_base_path/logs/svish.log
 end
 
 function debug
-    echo "$argv" >>$svp_base_path/logs/debug.log
+    echo "$argv" >>$svish_base_path/logs/debug.log
 end
 
 function print --description "content fg bg"

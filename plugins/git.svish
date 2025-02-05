@@ -31,7 +31,7 @@ function svish_git
                 set body (expand_placeholder "hash" "$commit_hash" "$body" "yes")
             end
 
-            # Find commit totals
+            # found commit totals
             set commits (count (git log --oneline 2>/dev/null))
             set objects (count (git ls-files))
             set branches (count (git branch))

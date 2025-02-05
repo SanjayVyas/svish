@@ -10,7 +10,7 @@ function map_get --description "Given a key, return value"
     # This ensures that we pick values which can contain spaces
     # e.g "weather   : max 20 min 5 wind 12 sunrise: 6.15"
 
-    string match --regex --quiet '\b'$key'\s*:\s*(?<value>.*?)(\w+\s*:\s*|$)' $map
+    string match --regex --quiet '\b'$key'\s*:\s*(?<value>.*?)(\w+\s*:\s*|$)' "$map"
     echo $value
 end
 
@@ -20,13 +20,14 @@ function map_put --description "Set a key:value, replace if existing"
     set map $argv[3..-1]
 
     # Search for key at word boundary and maybe followed by spaces and finally :
-    if string match --regex --quiet '\b'$key'\s*:' $map
+    if string match --regex --quiet '\b'$key'\s*:' "$map"
 
         # If found, replace it with new pair of key, value
-        string replace --regex --quiet '\b'$key'\s*:.*?(?=\b\w+\s*:)' $key:$value' ' $map
+        # string match --regex '\b'$key'\s*:.*?(?=\b\w+\s*:)' $map
+        string replace --regex '\b'$key'\s*:.*?(?=\b\w+\s*:|$)' $key:$value' ' $map
     else
         # Key not found? Add key:value to the end
-        echo  $map' '$key:$value' '
+        echo (string trim $map $key:$value)
     end
 end
 
@@ -35,16 +36,21 @@ function map_keys --description "Return all keys as a list"
     # keys begin at word boundary \bkeys
     # Create a named group ?<keys>
     # Key must be word char - alpha, numeric or underscore
-    string match --regex --all --quiet "\b(?<keys>\w+?)\s*:" $argv
+    string match --regex --all --quiet "\b(?<keys>\w+?)\s*:" "$argv"
 
     # return a list of keys
     echo $keys
 end
 
+function map_entries --description "Return all key:value pairs as a list"
+    string match --regex --all '\b\w+\s*:.*?(?=\b\w+\s*:|$)' "$argv"
+end
+
+
 function map_remove --description "Remove a key from the map"
     set key $argv[1]
     set map $argv[2..-1]
-    string replace --regex '\b'$key'\s*:.*?(?=\b\w+\s*:)' '' $map
+    string replace --regex '\b'$key'\s*:.*?(?=\b\w+\s*:)' '' "$map"
 end
 
 function map_index --description "Return key:value pair by index (starts 1)"
@@ -53,7 +59,7 @@ function map_index --description "Return key:value pair by index (starts 1)"
 
     # key:value starts with word boundary '\b', has word '\w+' followed by any chars '.*' (including spaces) take shortest '? match'
     # Must be followed by '?=' either the next key '\b\w+:' or end of line '$''
-    string match --regex --all --quiet '(?<pair>\b\w+\s*+:.*?)(?=(\b\w+\s*:|$))' $map
+    string match --regex --all --quiet '(?<pair>\b\w+\s*+:.*?)(?=(\b\w+\s*:|$))' "$map"
     if [ $index -le 0 ]
         for value in $pair
             echo $value

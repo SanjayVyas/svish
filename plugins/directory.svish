@@ -3,7 +3,7 @@
 function svish_directory_init
 
     set -g directory_decorator
-    set -g svish_style_map "simple:simple_path full:full_path short:short_path trail:trail_path middle:middle_path"
+    set -g g_style_map "simple:simple_path full:full_path short:short_path trail:trail_path middle:middle_path"
 end
 
 function svish_directory
@@ -21,7 +21,7 @@ function svish_directory
 
     # Poor man's lookup map
 
-    set style_generator ([ $directory_style = "cycle" ] && echo "cycle_path" || lookup $directory_style $svish_style_map)
+    set style_generator ([ $directory_style = "cycle" ] && echo "cycle_path" || lookup $directory_style $g_style_map)
     [ -z $style_generator ] && set style_generator full_path
 
     set path_style (call $style_generator (pwd))
@@ -143,11 +143,12 @@ function middle_path
 end
 
 function cycle_path
-    set -q svp_cycle_path && set -g svp_cycle_path (math $svp_cycle_path + 1) || set -g svp_cycle_path 1
-    set path_style (get_key_value $svp_cycle_path $svish_style_map)
-    [ -z "$path_style" ] && set svp_cycle_path 1
-    set path_style (string split ':' (get_key_value $svp_cycle_path $svish_style_map))
+    set -q state_cycle_path && set -g state_cycle_path (math $state_cycle_path + 1) || set -g state_cycle_path 1
+    set path_style (get_key_value $state_cycle_path $g_style_map)
+    [ -z "$path_style" ] && set state_cycle_path 1
+    set path_style (string split ':' (get_key_value $state_cycle_path $g_style_map))
     set fn $path_style[2]
+    save_state
     printf "%s" (call $fn (pwd))
 end
 

@@ -2,12 +2,12 @@
 # github.com/SanjayVyas
 
 function fish_prompt
-    # Capture svish_exit_value immediately
-    set -g svish_exit_value $status
+    # Capture g_exit_value immediately
+    set -g g_exit_value $status
     
     # Run the engine
-    set -g svish_base_path (dirname (realpath (status --current-filename)))
-    source $svish_base_path/core/svish_engine.fish
+    set -g g_base_path (dirname (realpath (status --current-filename)))
+    source $g_base_path/core/svish_engine.fish
 
     svish_init
     svish_render_left_prompt

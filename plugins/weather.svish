@@ -5,7 +5,7 @@ function svish_weather_init
     # Required thruout the login session, do not unset in cleanup
 
     # city:temp:wind_speed:last_update:prompt_count
-    set -q svp_weather_pack || set -g svp_weather_pack "0:0:0:0:0"
+    set -q state_weather_pack || set -g state_weather_pack "0:0:0:0:0"
 
     # These we can erase in cleanup
     set -g svish_weather_icon '🌤️'
@@ -20,18 +20,18 @@ end
 function svish_weather
 
     # Avoid weather plugin on login as web-api call takes time
-    [ $svp_prompt_count -lt 5 ] && return
+    [ $state_prompt_count -lt 5 ] && return
 
     set current_time (date +%s)
 
     # Extract elements from global var -> city:temp:wind_speed:last_update:prompt_count
-    set temperature (echo $svp_weather_pack | cut -d ':' -f2)
-    set wind_speed (echo $svp_weather_pack | cut -d ':' -f3)
-    set update_time (echo $svp_weather_pack | cut -d ':' -f4)
-    set prompt_count (math (echo $svp_weather_pack | cut -d ':' -f5) + 1)
+    set temperature (echo $state_weather_pack | cut -d ':' -f2)
+    set wind_speed (echo $state_weather_pack | cut -d ':' -f3)
+    set update_time (echo $state_weather_pack | cut -d ':' -f4)
+    set prompt_count (math (echo $state_weather_pack | cut -d ':' -f5) + 1)
 
     set time_elapsed (math "($current_time - $update_time) / 60")
-    set frequency ( math "$svp_prompt_count % $svish_repeat_after" )
+    set frequency ( math "$state_prompt_count % $svish_repeat_after" )
 
     if [ $time_elapsed -gt $weather_refresh_interval ]
 
@@ -39,12 +39,14 @@ function svish_weather
         set temperature $weather_data[1]
         set wind_speed $weather_data[2]
 
-        set svp_weather_pack "$weather_city:$temperature:$wind_speed:$current_time:$prompt_count"
+        set state_weather_pack "$weather_city:$temperature:$wind_speed:$current_time:$prompt_count"
         set body "$svish_weather_icon $weather_city $temperature°$svish_weather_unit 󰑓"
     else if [ $frequency -eq 0 ]
-        set svp_weather_pack "$weather_city:$temperature:$wind_speed:$current_time:$prompt_count"
+        set state_weather_pack "$weather_city:$temperature:$wind_speed:$current_time:$prompt_count"
         set body "$svish_weather_icon $weather_city $temperature°$svish_weather_unit"
     end
+
+    save_state
     printf "%s" "$body"
 end
 

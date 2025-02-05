@@ -2,8 +2,8 @@
 
 function svish_exit
     set body "$segment_exit"
-    if [ "$svish_exit_value" -ne 0 2>/dev/null ]
-        set body (string replace '#exit_value' $svish_exit_value $body)
+    if [ "$g_exit_value" -ne 0 2>/dev/null ]
+        set body (string replace '#exit_value' $g_exit_value $body)
     else
         set body ""
     end

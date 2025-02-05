@@ -1,5 +1,5 @@
 # github.com/SanjayVyas
-source $svish_base_path/core/svish_map.fish
+source $g_base_path/core/svish_map.fish
 
 function get_value --description "Get value of a variable which contains another variable name"
     # set name "Angular"; set var name; # get_value var -> Angular
@@ -10,14 +10,14 @@ end
 
 function parse_setting --description "Break a string into a list, keeping quoted parts intact"
     # Thanks github.com/rajch for this gem 👍
-    string replace -ra -- "'([^']*)'" '$1' (string match -ra -- "'[^']*'|\S+" $argv)
+    string replace --regex --all -- "'([^']*)'" '$1' (string match -ra -- "'[^']*'|\S+" "$argv")
 end
 
 function listify --description "Make a list by splitting on spaces"
     string split ' ' "$argv"
 end
 
-function found --description "string_to_find in larger_string"
+function found --description "string_to_found in larger_string"
     # Cosmetic - expect word 'in' as second arg, ignore if it isnt
     [ "$argv[2]" != in ] && set argv[3] $argv[2]
     string match -qer $argv[1] $argv[3]
@@ -37,11 +37,11 @@ function call --description "safe way of calling functions, just in case they ar
 end
 
 function log --description logger
-    printf "%s:\t%s\n" (date '+%y-%m-%d %H:%M:%S') "$argv" >>$svish_base_path/logs/svish.log
+    printf "%s:\t%s\n" (date '+%y-%m-%d %H:%M:%S') "$argv" >>$g_base_path/logs/svish.log
 end
 
 function debug
-    echo "$argv" >>$svish_base_path/logs/debug.log
+    echo "$argv" >>$g_base_path/logs/debug.log
 end
 
 function print --description "content fg bg"
@@ -87,7 +87,7 @@ function expand_placeholder --description "#placeholder value body visibility"
             set body (string replace --regex "\S+#$placeholder *" "" "$body" )
         end
     else
-        set count svp_{$placeholder}_count
+        set count state_{$placeholder}_count
         set -q $count && set -g $count (math $$count + 1) || set -g $count 1
         set is_it_time (math "$$count % 32")
         if [ $is_it_time -eq 1 -o $is_it_time -gt 3 ]
@@ -105,7 +105,7 @@ function expand_placeholder --description "#placeholder value body visibility"
             set body (string replace --regex -- "#$placeholder *" "$replacement" "$body")
         end
     end
-
+    save_state
     printf "%s" "$body"
 end
 
@@ -138,5 +138,5 @@ function domain_from_url --description "Extract github.com from http://www.githu
 end
 
 function md5sum_dir --description "Calculate a single md5sum of all files in a directory"
-    find $argv -type f -exec md5sum {} + | sort | md5sum
+    found $argv -type f -exec md5sum {} + | sort | md5sum
 end

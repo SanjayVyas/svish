@@ -1,14 +1,17 @@
 function svish_init --description "Initialize global variables"
-    source $svish_base_path/core/svish_helpers.fish
-    
-    # Single state of the engine and all its plugins for storing in env, instead of polluting with dozens of env variables
-    set -q svp_svish_state || set -g svp_svish_state
+    source $g_base_path/core/svish_helpers.fish
+
+    # Load defaults in case user doesn't define them (e.g colours)
+    load_defaults
+
+    # Load svish_state saved in env
+    load_state
 
     # Needed for removing all variables from env at the end
-    set -q svish_variables_list || set -g svish_variables_list
+    set -q g_variable_list || set -g g_variable_list
 
     # Needed to invoke plugin_cleanup
-    set -q svish_plugin_list || set -g svish_plugin_list ""
+    set -q g_plugin_list || set -g g_plugin_list ""
 
     # For quick fire promptlets which don't define their own decorator
     set -q default_decorator || set -g default_decorator ''
@@ -23,7 +26,7 @@ end
 function svish_render_left_prompt --description "Parse prompt lines and render them"
 
     # No point running the full jingbang if there is no svish.theme
-    [ ! -f "$svish_base_path/svish.theme" ] && svish_original_fish_prompt && return
+    [ ! -f "$g_base_path/svish.theme" ] && svish_original_fish_prompt && return
 
     show $svish_blank_line_before_prompt && printf "\n"
 
@@ -38,8 +41,8 @@ function svish_render_left_prompt --description "Parse prompt lines and render t
         printf "\n"
     end
 
-    # In case, promplets want to activate on specific prompt count
-    save_state svp_prompt_count $svp_prompt_count
+    set -g state_prompt_count (math $state_prompt_count + 1 )
+    save_state
 end
 
 function svish_render_right_prompt --description "Few segments might go to right side"
@@ -61,10 +64,10 @@ function parse_line --description "Recursive function to expand segments and inv
             set plugin (string replace --regex -- '^segment_' 'svish_' $item)
 
             # We need a list of all plugins to clean up later
-            set -g svish_plugin_list $svish_plugin_list $plugin
+            set -g g_plugin_list $g_plugin_list $plugin
 
             # Sometimes plugins may not be in their own dedicated source file, so ignore if file not founds
-            source $svish_base_path/plugins/$name.svish 2>/dev/null
+            source $g_base_path/plugins/$name.svish 2>/dev/null
 
             # Initialize the plugin and check if it expands to more segment (e.g segment_jsframeworks → segment_node overlap segment_angular)
             call {$plugin}_init
@@ -231,7 +234,7 @@ function sanitize_prompt_line --description "Remove misspelt/duplicate/leading/t
     set segment_list (string replace --regex '(.*)(\bsegment_\S+\b)(.*)' '$1$2' $segment_list)
 
     # 3. Remove contiguous connector_group [segment_directory gap none segment_git] becomes [segment_directory gap segment_git]
-    # Find a pair of connector (gap none or none none etc) and remove the second on, repeat
+    # found a pair of connector (gap none or none none etc) and remove the second on, repeat
     while set segment_list (string replace --regex "($connector_group)+(?:$connector_group)" '$1' $segment_list)
     end
 
@@ -244,7 +247,7 @@ function sanitize_prompt_line --description "Remove misspelt/duplicate/leading/t
 end
 
 function shift_prompt_to_end --description "We can have only 1 prompt, that too at the end of last line"
-    # Find out the number of prompt lines we have
+    # found out the number of prompt lines we have
     set prompt_list $argv
     set line_count (count $prompt_list)
     if [ $line_count -eq 0 ]
@@ -275,12 +278,12 @@ function svish_load_theme --description "Load user theme or definition unit"
     set theme_name $argv[1]
     # if no theme/unit is provided, load svish.theme
     [ -z "$theme_name" ] && set theme_name "svish.theme"
-    if [ -f $svish_base_path/$theme_name ]
+    if [ -f $g_base_path/$theme_name ]
 
         # Avoid loading the same theme/unit multiple times
-        if not contains $theme_name $svish_loaded_theme
-            set -g svish_loaded_theme $svish_loaded_theme $theme_name
-            for line in (cat $svish_base_path/$theme_name 2>/dev/null)
+        if not contains $theme_name $g_loaded_themes
+            set -g g_loaded_themes $g_loaded_themes $theme_name
+            for line in (cat $g_base_path/$theme_name 2>/dev/null)
                 # Look for included file
                 if string match -qr "^@import " $line
                     set theme_name (string replace '@import ' '' $line)
@@ -293,7 +296,7 @@ function svish_load_theme --description "Load user theme or definition unit"
                     set -g $setting
 
                     # Store all global variables in a list to that we can erase them
-                    set -g svish_variables_list $svish_variables_list $setting[1]
+                    set -g g_variable_list $g_variable_list $setting[1]
                 end
             end
         end
@@ -301,29 +304,30 @@ function svish_load_theme --description "Load user theme or definition unit"
 end
 
 function load_theme_cache --description "Load cache if it exists"
-    set -q svp_theme_checksum || set -g svp_theme_checksum ""
+    set -q state_checksum || set -g state_checksum
 
     # Checksum the themes directory so that if any file changes, we recreate the cache
-    set checksum (md5sum_dir $svish_base_path/svish.theme $svish_base_path/themes)
-
-    if [ $svp_theme_checksum = $checksum ] && [ -f $svish_base_path/.cache ]
-        for line in (cat $svish_base_path/.cache)
+    set checksum (md5sum_dir $g_base_path/svish.theme $g_base_path/themes)
+    if [ "$state_checksum" != $checksum ] && [ -f $g_base_path/.cache ]
+        for line in (cat $g_base_path/.cache)
             eval $line
 
             # store the variables in a list so that we can cleanup from env on prompt end
-            set -g svish_variables_list $svish_variables_list $setting[1] (listify $line)[3]
+            set -g g_variable_list $g_variable_list $setting[1] (listify $line)[3]
         end
+        set state_checksum $checksum
+        save_state
         return 0
     end
     return 1
 end
 
 function save_theme_cache --description "Save all theme variables in a cache"
-    echo >$svish_base_path/.cache
-    for var in $svish_variables_list
-        echo set -g $var \'$$var\' >>$svish_base_path/.cache
+    echo >$g_base_path/.cache
+    for var in $g_variable_list
+        echo set -g $var \'$$var\' >>$g_base_path/.cache
     end
-    set svp_theme_checksum (md5sum_dir $svish_base_path/svish.theme $svish_base_path/themes)
+    set state_checksum (md5sum_dir $g_base_path/svish.theme $g_base_path/themes)
 end
 
 function decorator_element --description "Extract different elements of a decorator →  black white "
@@ -334,22 +338,91 @@ function decorator_element --description "Extract different elements of a decora
     get_value $deco_list[$argv[2]]
 end
 
+function load_defaults
+    set -g BLACK #000000
+    set -g BLUE #0000FF
+    set -g CYAN #00FFFF
+    set -g FUCHSIA #FF00FF
+    set -g GRAY #808080
+    set -g GREEN #008000
+    set -g LIME #00FF00
+    set -g MAGENTA #FF00FF
+    set -g MAROON #800000
+    set -g NAVY #000080
+    set -g OLIVE #808000
+    set -g ORANGE #FF781F
+    set -g PURPLE #800080
+    set -g RED #FF0000
+    set -g SILVER #C0C0C0
+    set -g TEAL #008080
+    set -g WHITE #FFFFFF
+    set -g YELLOW #FFFF00
+    set -g NORMAL normal
+
+    set -g ARROW_LEFT 
+    set -g ARROW_RIGHT 
+    set -g ROUNDED_LEFT 
+    set -g ROUNDED_RIGHT 
+    set -g SLANT_EAST_RIGHT 
+    set -g SLANT_EAST_LEFT 
+    set -g SLANT_WEST_RIGHT 
+    set -g SLANT_WEST_LEFT 
+    set -g FIRE_LEFT 
+    set -g FIRE_RIGHT 
+    set -g PIXEL_LEFT 
+    set -g PIXEL_RIGHT 
+    set -g DIXEL_LEFT 
+    set -g DIXEL_RIGHT 
+    set -g ARROW_SEPARATOR 
+    set -g VERTICAL_SEPARATOR │
+    set -g FSLASH_SEPARATOR ╱
+    set -g BSLASH_SEPARATOR ╲
+    set -g FAT_SEPARATOR ┃
+    set -g NO_SEPARATOR ''
+    set -g NONE ''
+    set -g DOTTED_DIVIDER 
+
+end
+
+function load_state
+    for entry in (map_entries $svish_state)
+        set key (string match --regex -- '(.*)(?=:.*)' $entry)[2]
+        set value (string match --regex -- '(?:.*\:)(.*)' $entry)[2]
+        [ -n $key ] && set -g state_{$key} $value
+    end
+end
+
+function save_state
+    set -g svish_state
+
+    for var in (set | string match --regex --entire '^state_')
+        set state (string match --regex '^(state_\w+)' $var)[2]
+        set name (string match --regex '^state_(\w+)' $var )[2]
+        set svish_state "$name:$$state $svish_state"
+    end
+end
+
 function svish_cleanup
 
     # Call all plugin cleanup
-    for plugin in $svish_plugin_list
+    for plugin in $g_plugin_list
         call {$plugin}_cleanup 2>/dev/null
     end
 
     # Remove all settings variables
-    for var in $svish_variables_list
+    for var in $g_variable_list
         set --erase -g $var 2>/dev/null
     end
 
     # Remove all global variables
-    set global_vars (set | string match --regex '^svish_\S+')
+    set global_vars (set | string match --regex '^g_\S+')
     for var in $global_vars
         set -q $var && set --erase -g $var 2>/dev/null
+    end
+
+    # Remove state variables which have been combined in svish_state
+    for var in (set | string match --regex '^state_\w+\b')
+        set --erase -g $var
     end
 
     # Remove all functions
@@ -357,12 +430,4 @@ function svish_cleanup
     for fn in $svish_functions
         functions --erase $fn
     end
-end
-
-function save_state
-    set key $argv[1]
-    set value $argv[2..-1]
-
-    set svp_svish_state (map_put $key $value $svp_svish_state)
-    debug $key $value $svp_svish_state
 end

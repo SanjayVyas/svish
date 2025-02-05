@@ -15,7 +15,7 @@ function svish_prompt --description "The actual prompt '>'' part"
     set body (string replace "#host" (color (hostname -s) (get_value $prompt_host_color)) $body)
 
     if show $prompt_change_color
-        set prompt_icon ([ $svish_exit_value -eq 0 ] && echo (color $prompt_icon (get_value green)) || echo (color $prompt_icon (get_value red)))
+        set prompt_icon ([ $g_exit_value -eq 0 ] && echo (color $prompt_icon (get_value green)) || echo (color $prompt_icon (get_value red)))
     end
     
     if [ -z $body ]

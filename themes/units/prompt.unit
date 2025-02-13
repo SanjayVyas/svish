@@ -3,6 +3,8 @@
 # Do not modify this file
 # @import it in the theme and redefine values
 
+@import themes/units/base.unit
+
 [ prompt ]
 segment_prompt '#icon#user@#host'
     prompt_decorator                    NONE WHITE NORMAL NONE

@@ -6,13 +6,17 @@ function svish_duration_init
 end
 
 function svish_duration
-    set duration $CMD_DURATION
-    set -q duration_minimum || set duration_minimum 10
-    
     set body "$segment_duration"
+    
+    set duration $CMD_DURATION
+    set -q duration_minimum || set duration_minimum 5
+    
     set lapse (math --scale=0 "($duration / 1000)")
-    set value ([ "$lapse" -gt "$duration_minimum" ] && echo $lapse || echo 0)
-    set body (expand_placeholder "duration" "$value" "$body" "yes")
+    if [ "$lapse" -gt "$duration_minimum" ]
+        set body (replace_placeholder "duration" " $lapse" "$body" "yes")
+    else
+        set body 
+    end
 
     printf "%s" "$body"
 end

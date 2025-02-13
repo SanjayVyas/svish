@@ -2,56 +2,61 @@
 
 function svish_weather_init
 
-    # Required thruout the login session, do not unset in cleanup
-
     # city:temp:wind_speed:last_update:prompt_count
-    set -q state_weather_pack || set -g state_weather_pack "0:0:0:0:0"
+    set -q state_weather_pack || set -g state_weather_pack '0&0&0&0'
 
-    # These we can erase in cleanup
-    set -g svish_weather_icon '🌤️'
-    set -g svish_wind_speed_icon '🎏'
-    set -g svish_weather_unit C
-    set -g svish_repeat_after 30
-
-    set -g svish_lat_lon_api "https://nominatim.openstreetmap.org/search?q=#city&format=json"
-    set -g svish_weather_api "https://api.open-meteo.com/v1/forecast?latitude=#lat&longitude=#lon&current_weather=true&temperature_unit=#unit"
 end
 
 function svish_weather
 
+    set weather_icon '🌤️'
+    set weather_unit C
+    set repeat_after 15
+
     # Avoid weather plugin on login as web-api call takes time
-    [ $state_prompt_count -lt 5 ] && return
+    if [ $state_prompt_count -lt 5 ]
+        return
+    end
 
     set current_time (date +%s)
-
     # Extract elements from global var -> city:temp:wind_speed:last_update:prompt_count
-    set temperature (echo $state_weather_pack | cut -d ':' -f2)
-    set wind_speed (echo $state_weather_pack | cut -d ':' -f3)
-    set update_time (echo $state_weather_pack | cut -d ':' -f4)
-    set prompt_count (math (echo $state_weather_pack | cut -d ':' -f5) + 1)
+    set temperature (echo $state_weather_pack | cut -d '&' -f2)
+    set wind_speed (echo $state_weather_pack | cut -d '&' -f3)
+    set update_time (echo $state_weather_pack | cut -d '&' -f4)
+    empty "$update_time" && set update_time 0
 
     set time_elapsed (math "($current_time - $update_time) / 60")
-    set frequency ( math "$state_prompt_count % $svish_repeat_after" )
+    set frequency ( math "$state_prompt_count % $repeat_after" )
 
     if [ $time_elapsed -gt $weather_refresh_interval ]
-
         set weather_data (get_weather $weather_city)
         set temperature $weather_data[1]
         set wind_speed $weather_data[2]
-
-        set state_weather_pack "$weather_city:$temperature:$wind_speed:$current_time:$prompt_count"
-        set body "$svish_weather_icon $weather_city $temperature°$svish_weather_unit 󰑓"
-    else if [ $frequency -eq 0 ]
-        set state_weather_pack "$weather_city:$temperature:$wind_speed:$current_time:$prompt_count"
-        set body "$svish_weather_icon $weather_city $temperature°$svish_weather_unit"
+        set refresh_icon 
+    else if [ $frequency -ne 0 ]
+        return
     end
 
-    save_state
+    set state_weather_pack "$weather_city&$temperature&$wind_speed&$current_time"
+
+    set body $weather_icon
+    if show $weather_show_city
+        set body "$body $weather_city $temperature°$weather_unit"
+    else
+        set body "$body $temperature°$weather_unit"
+    end
+
+    if show $weather_windspeed
+        set body "$body 󱗺$wind_speed"
+    end
+    set body $body $refresh_icon
+
     printf "%s" "$body"
 end
 
+
 function get_weather --description "lat, lon"
- 
+
     set weather_data NA NA
 
     # Get temperature and wind speed
@@ -62,8 +67,11 @@ end
 
 function get_latitude_longitude --description city
 
+    # LatLon AOU
+    set lat_lon_api "https://nominatim.openstreetmap.org/search?q=#city&format=json"
+
     # Given city name, get Latitude and Longitude 
-    set url (string replace "#city" "$argv" $svish_lat_lon_api)
+    set url (string replace "#city" "$argv" $lat_lon_api)
     set data (curl -s --connect-timeout 2 --max-time 5 $url)
 
     set lat_lon 0 0
@@ -74,17 +82,32 @@ function get_latitude_longitude --description city
 end
 
 function get_current_weather --description "lat, long"
+
+    # Weather API
+    set weather_api "https://api.open-meteo.com/v1/forecast?latitude=#lat&longitude=#lon&current_weather=true&temperature_unit=#unit"
+
     set temperature NA
     set wind_speed NA
 
-    set url (string replace "#lat" $argv[1] $svish_weather_api)
+    set url (string replace "#lat" $argv[1] $weather_api)
     set url (string replace "#lon" $argv[2] $url)
-    set unit (string upper (string sub -s 1 -e 2 (string trim $svish_weather_unit)))
-    set url (string replace "#unit" ([ "$svish_weather_unit" = "C" ] && echo "celsius" || echo "fahrenheit") $url)
+    set unit (string upper (string sub -s 1 -e 2 (string trim $weather_unit)))
+    set url (string replace "#unit" ([ "$weather_unit" = "C" ] && echo "celsius" || echo "fahrenheit") $url)
     set data (curl -s --connect-timeout 2 --max-time 5 $url)
     if [ $status -eq 0 ]
         set temperature (echo $data | jq .current_weather.temperature)
         set wind_speed (echo $data | jq .current_weather.windspeed)
     end
     printf "%s\n%s" "$temperature" "$wind_speed"
+end
+
+function svish_weather_cleanup
+
+    # These we can erase in cleanup
+    set --erase weather_icon
+    set --erase wind_speed_icon
+    set --erase weather_unit
+    set --erase repeat_after
+    set --erase lat_lon_api
+    set --erase weather_api
 end

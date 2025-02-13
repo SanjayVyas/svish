@@ -1,20 +1,103 @@
 # github.com/SanjayVyas
 
-# Do not modify this template
-# Copy it and save it as svish.theme in svish main directory and modify@import themes/units/base.unit
+# Always import base unit
 @import themes/units/base.unit
-@import themes/units/directory.unit
-@import themes/units/git.unit
-@import themes/units/process.unit
-@import themes/units/tips.unit
-@import themes/units/exit.unit
-@import themes/units/weather.unit
-@import themes/units/prompt.unit
 
+# @import a segment unit and/or define segment settings here
+
+#@import themes/units/directory.unit
+[ directory ]
+segment_directory '#path ┃ #perm  #dirs #files #links 󰟥#pipes 󰾰#devices #sockets '
+directory_home_decorator     BLACK LIGHT_BLUE 
+directory_root_decorator     BLACK LIGHT_PURPLE 
+
+    directory_details           yes  
+    directory_devices           yes
+    directory_dirs              yes
+    directory_files             yes
+    directory_links             yes
+    directory_pipes             yes
+    directory_sockets           yes
+    directory_perm              no
+    directory_style             full
+    directory_separator         
+    directory_expand            yes
+    directory_details_section   once
+
+# @import themes/units/git.unit
+[ git ]
+segment_git '  #remote #branch⬆#level ┃ #hash 󰜘#commits 󱔗#objects 󱓊#branches  󰡯#untracked #added 󱇧#modified 󰗨#deleted' 
+git_decorator  BLACK LIGHT_RED 
+
+    git_details                 yes
+    git_remote_icon             yes
+    git_commit_hash_digits      4
+    git_total_commits           yes
+    git_total_objects           yes
+    git_total_branches          yes
+    git_totals_only_when_clean  yes
+    git_untracked               yes   
+    git_added                   yes
+    git_modified                yes
+    git_deleted                 yes
+    git_change_color_on_status  yes
+    git_directory_levels        yes
+    git_dirty_color             LIGHT_RED
+    git_clean_color             LIGHT_GREEN
+    git_staged_color            LIGHT_ORANGE
+    git_some_staged             YELLOW
+    git_commit_section          once
+
+# @import themes/units/process.unit
+[ process ]
+segment_process ' #processes 󰀿#jobs'
+process_decorator  DIXEL_LEFT BLACK PEACH DIXEL_RIGHT
+
+    process_process         yes
+    process_job             yes
+
+# @import themes/units/tips.unit
+[ tips ]
+segment_tips '  #tip '
+tips_decorator NO_SEPARATOR GRAY NORMAL NO_SEPARATOR
+
+# @import themes/units/exit.unit
+[ exit ]
+segment_exit '⚠️ #exit_value '
+exit_decorator  WHITE RED NONE
+    exit_show yes
+
+# @import themes/units/weather.unit
+[ weather ]
+weather_decorator  WHITE BLUE 
+    weather_city ' Mumbai'
+    weather_unit 'C'
+    weather_refresh_interval 30
+    weather_temperature_icon '🌤️'
+    weather_show_city no
+    weather_windspeed no
+
+# @import themes/units/prompt.unit
+[ prompt ]
+segment_prompt '#icon#user@#host'
+    prompt_decorator                    NONE WHITE NORMAL NONE
+    prompt_icon                         ''
+    prompt_user_icon                    ''
+    prompt_user_color                   YELLOW
+    prompt_at_color                     WHITE
+    prompt_host_color                   CYAN
+    prompt_arrow_color                  WHITE
+    prompt_change_color                 yes
+
+[ javascript ]
+    javascript_show once
+
+
+# Add or remove segments listed above in left or right prompt lines below
 [ svish ]
 svish_left_prompt_1     segment_directory gap segment_git 
-svish_left_prompt_2     segment_duration gap segment_prompt
-svish_right_prompt      segment_exit none segment_jsframeworks
+svish_left_prompt_2     segment_duration none segment_prompt
+svish_right_prompt      segment_exit none segment_jsframeworks none segment_weather none segment_process
 
-svish_expand_promptlets no
+#svish_expand_promptlets no
 svish_blank_line_before_prompt yes

@@ -18,14 +18,14 @@ function listify --description "Make a list by splitting on spaces"
 end
 
 function found --description "string_to_found in larger_string"
-    # Cosmetic - expect word 'in' as second arg, ignore if it isnt
+    # Cosmetic - expect word 'in' as second arg, ignore if it isn't
     [ "$argv[2]" != in ] && set argv[3] $argv[2]
     string match -qer $argv[1] $argv[3]
 end
 
 function empty --description "Check if given argument is blank or 0"
-    set var $argv[1]
-    not set -q $var || string length -q -- $var && [ "$var" = 0 ]
+    set var "$argv[1]"
+    not set -q "$var" 2>/dev/null || string length -q -- "$var" && [ "$var" = 0 ]
 end
 
 function show --description "decide is a user setting is set to show or hide"
@@ -36,11 +36,11 @@ function call --description "safe way of calling functions, just in case they ar
     functions -q $argv[1] && $argv[1] $argv[2..-1]
 end
 
-function log --description logger
+function log --description "Write to log file"
     printf "%s:\t%s\n" (date '+%y-%m-%d %H:%M:%S') "$argv" >>$g_base_path/logs/svish.log
 end
 
-function debug
+function debug --description "Debug for plugin writers"
     echo "$argv" >>$g_base_path/logs/debug.log
 end
 
@@ -51,9 +51,13 @@ function print --description "content fg bg"
     set bg normal
     [ -n $argv[3] ] && set bg $argv[3]
 
-    set_color $fg -b $bg
+    if [ (count $argv) -gt 3 ]
+        set_color -r $bg
+    else
+        set_color $fg -b $bg
+    end
     printf "%s" "$argv[1]"
-    set_color normal
+    set_color -r normal
 end
 
 function hex_to_rgb --description "Convert FFFFFF to 255;255;255 for use in ASCII escape sequence"
@@ -67,50 +71,38 @@ function color --description "To color a part of a string"
     set fg (hex_to_rgb $argv[2])
     set bg (hex_to_rgb $argv[3])
 
-    echo -e "\x1b[38;2;"$fg"m\x1b[48;2;"$bg"m"$text"\x1b[0m"
+    if [ -z $bg ]
+        echo -e "\x1b[38;2;"$fg"m"$text"\x1b[0m"
+    else
+        echo -e "\x1b[38;2;"$fg"m\x1b[48;2;"$bg"m"$text"\x1b[0m"
+    end
 end
 
-function replace_placeholder --description "#placeholder value body"
-    string replace "#$argv[1]" "$argv[2]" "$argv[3]"
-end
-
-function expand_placeholder --description "#placeholder value body visibility"
-    set placeholder (string trim $argv[1])
+function replace_placeholder --description "placeholder value body visible"
+    set placeholder $argv[1]
     set value $argv[2]
     set body $argv[3]
     set visible $argv[4]
+    set expand $argv[5]
 
-    if not show $svish_expand_promplets
-        if not empty "$value" && show $visible
-            set body (string replace --regex -- "#$placeholder\b" "$value" "$body")
-        else
-            set body (string replace --regex "\S+#$placeholder *" "" "$body" )
-        end
+    # When removing a placeholder, remove icon/emoji before it too
+    set non_ascii '[^\x00-\x7F]'
+
+    if [ "$promptlet_expanding" = "$g_current_plugin" ] || show {$g_current_plugin}_expand
+        set body (string replace --regex -- "#$placeholder\b" "$placeholder $value" "$body")
+        set -g g_promptlet_expanding $g_current_plugin
+    else if not empty $value && show $visible
+        set body (string replace --regex -- "#$placeholder\b" "$value" "$body")
     else
-        set count state_{$placeholder}_count
-        set -q $count && set -g $count (math $$count + 1) || set -g $count 1
-        set is_it_time (math "$$count % 32")
-        if [ $is_it_time -eq 1 -o $is_it_time -gt 3 ]
-            if not empty "$value" && show $visible
-                set body (string replace --regex -- "#$placeholder *" "$value " "$body")
-            else
-                set body (string replace --regex ".?#$placeholder *" "" "$body" )
-            end
-        else if [ $is_it_time -eq 2 ]
-
-            set body (string replace --regex -- "#$placeholder *" "$placeholder $value┊" "$body")
-
-        else if [ $is_it_time -eq 3 ]
-            set replacement (string sub -s 1 -e 1 $placeholder) "$value┊"
-            set body (string replace --regex -- "#$placeholder *" "$replacement" "$body")
-        end
+        set body (string replace --regex -- "$non_ascii*#$placeholder *" '' "$body")
     end
-    save_state
+
     printf "%s" "$body"
 end
 
-function remove_unused_placeholders
-    set body (string replace -ar -- '.?#\S*' ' ' "$argv" | tr -s ' ')
+function remove_unused_placeholders --description "Remove unused # from promptlets"
+    set body (string replace --all --regex -- '[^\x00-\x7F]*#\S*' '' "$argv")
+    [ -z (string trim $body) ] && set body ""
     printf "%s" "$body"
 end
 

@@ -1,81 +1,89 @@
 # github.com/SanjayVyas
 
 function svish_git
-    
+    set -q state_git_commit_shown || set -g state_git_commit_shown
     set level (git_dir_level)
-    if [  $level -ge 0 ]
+    if [ $level -ge 0 ]
 
         set body "$segment_git"
 
         # branch name is always shown
         set branch_name (get_branch_name)
-        set body (replace_placeholder "branch" "$branch_name" "$body")
+        set body (replace_placeholder "branch" "$branch_name" "$body" "yes")
 
         # Show how many levels up is the .git dir
-        [ $level -gt 0 ] && set body (expand_placeholder "level" "$level" "$body" "yes" )
+        [ $level -gt 0 ] && set body (replace_placeholder "level" "$level" "$body" "yes" )
 
         # Replace the #remote placeholder with repo and icon, e.g. github 
         if show $git_remote_icon
             set name_icon (get_repo_name_icon)
             if [ -n "$name_icon" ]
-                set body (replace_placeholder "remote" "#$name_icon[1]" "$body")
-                set body (expand_placeholder "$name_icon[1]" "$name_icon[2]" "$body" "$git_remote_icon")
+                set body (replace_placeholder "remote" "#$name_icon[1]" "$body" "yes")
+                set body (replace_placeholder "$name_icon[1]" "$name_icon[2]" "$body" "$git_remote_icon" "yes")
             end
         end
 
         # Show commit hash, total files and branches only when the repo is clean
         if show $git_totals_only_when_clean && repo_is_clean
-            # commit hash
-            if [ $git_commit_hash_digits -gt 0 ]
-                set commit_hash (string sub -s 1 -e $git_commit_hash_digits ( git rev-parse --short HEAD 2>/dev/null ))
-                set body (expand_placeholder "hash" "$commit_hash" "$body" "yes")
-            end
 
-            # found commit totals
-            set commits (count (git log --oneline 2>/dev/null))
-            set objects (count (git ls-files))
-            set branches (count (git branch))
+            if [ "$git_commit_section" = "once" -a (pwd) = "$state_last_pwd" -a "$state_git_commit_shown" = "yes" ]
+                set body (string replace --regex " *┃.*" "" $body)
 
-            for placeholder in commits objects branches
-                set placeholder_flag git_total_{$placeholder}
-                set body (expand_placeholder "$placeholder" "$$placeholder" "$body" "$$placeholder_flag")
+            else
+                # commit hash
+                if [ $git_commit_hash_digits -gt 0 ]
+                    set commit_hash (string sub -s 1 -e $git_commit_hash_digits ( git rev-parse --short HEAD 2>/dev/null ))
+                    set body (replace_placeholder "hash" "$commit_hash" "$body" "yes")
+                end
+
+                # found commit totals
+                set commits (count (git log --oneline 2>/dev/null))
+                set objects (count (git ls-files))
+                set branches (count (git branch))
+
+                for placeholder in commits objects branches
+                    set placeholder_flag git_total_{$placeholder}
+                    set body (replace_placeholder "$placeholder" "$$placeholder" "$body" "$$placeholder_flag")
+                end
+                set state_git_commit_shown "yes"
             end
         else
-            set body (string replace --regex "┃.*" "" $body)
+            set body (string replace --regex " ┃.*" "" $body)
         end
-        
+
         set total 0
         if show $git_details
-            
+
             # git status
             set untracked (git_status "^\?\?")
             set added (git_status "^A ")
             set modified (git_status '(^M|^.M)')
             set deleted (git_status '(^D|^.D)')
-            
+
             for placeholder in untracked added deleted modified
                 set placeholder_flag git_{$placeholder}
-                set body (expand_placeholder "$placeholder" "$$placeholder" "$body" "$$placeholder_flag")
+                set body (replace_placeholder "$placeholder" "$$placeholder" "$body" "$$placeholder_flag")
                 set total (math $total + $$placeholder)
             end
-            
+
             [ $total -eq 0 ] && set body (string replace --regex ' *$' '' $body)
         else
             set body (string replace --regex ' *$' '' $body)
         end
-        
+
         # segment color 
         if show $git_change_color_on_status
             if repo_is_clean
                 set git_decorator[3] $git_clean_color
+                set state_git_commit_shown "yes"
             else if repo_is_dirty
                 set git_decorator[3] $git_dirty_color
+                set state_git_commit_shown "no"
             else
                 set git_decorator[3] $git_staged_color
+                set state_git_commit_shown "no"
             end
         end
-        
-        set body (remove_unused_placeholders $body)
         printf "%s" "$body"
     end
 
@@ -131,7 +139,7 @@ function git_dir_level
     set dir (pwd)
     set counter 0
 
-    while [ ! -d $dir/.git ] && [ "$dir" != "/" ]
+    while [ ! -d $dir/.git ] && [ "$dir" != / ]
         set dir (dirname $dir)
         set counter (math $counter+1)
     end

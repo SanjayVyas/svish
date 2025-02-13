@@ -2,6 +2,7 @@
 
 # Do not modify this file
 # @import it in the theme and redefine values
+@import themes/unit/base.unit
 
 [ weather ]
 weather_decorator  WHITE BLUE 

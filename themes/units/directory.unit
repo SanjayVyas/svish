@@ -25,6 +25,7 @@ segment_directory '#path ┃ #perm  #dirs #files #links 󰟥#pipes �
 directory_home_decorator     BLACK LIGHT_BLUE 
 directory_root_decorator     BLACK LIGHT_PURPLE 
 
+    directory_permission        no
     directory_details           yes  
     directory_devices           yes
     directory_dirs              yes
@@ -32,13 +33,5 @@ directory_root_decorator     BLACK LIGHT_PURPLE 
     directory_links             yes
     directory_pipes             yes
     directory_sockets           yes
-    directory_perm              no
     directory_style             full
     directory_separator         
-
-owner_icon ''
-group_icon ''
-world_icon ''
-
-home_folder_icon ' 🏠 '
-root_folder_icon ' 🌏 '

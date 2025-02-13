@@ -10,6 +10,12 @@ end
 
 function svish_jsframeworks_expand
 
+    # If we are in the same dir, don't show it again
+    set last_pwd  (string trim $state_last_pwd)
+    if [  "$javascript_show" = "once" -a (pwd) = "$last_pwd" ]
+        return
+    end
+
     if [ -f package.json ]
 
         # Load package.json so that we can avoid repeated disk access
@@ -55,7 +61,7 @@ function svish_jsframeworks_expand
     end
 
     function svish_jsframeworks
-
+        printf ""
     end
 
     function svish_node
@@ -71,6 +77,7 @@ function svish_jsframeworks_expand
 end
 
 function svish_angular
+
     if [ -f angular.json ]
         set ng_version (echo $json | jq -r '.dependencies["@angular/core"]' 2>/dev/null)
         set ng_icon 

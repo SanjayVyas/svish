@@ -3,8 +3,7 @@
 # Do not modify this file
 # @import it in the theme and redefine values
 
-@import themes/unit/colors.unit
-@import themes/unit/decorators.unit
+@import themes/units/base.unit
 
 [ process ]
 segment_process ' #processes 󰀿#jobs'

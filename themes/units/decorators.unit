@@ -3,7 +3,6 @@
 # Do not modify this file
 # @import it in the theme and redefine values
 
-@import themes/units/colors.unit
-@import themes/units/connectors.unit
+@import themes/units/base.unit
 
 default_decorator NONE BLACK WHITE NONE

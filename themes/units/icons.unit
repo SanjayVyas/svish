@@ -4,3 +4,9 @@
 # @import it in the theme and redefine values
 
 [ icons ]
+owner_icon ''
+group_icon ''
+world_icon ''
+
+home_folder_icon ' 🏠 '
+root_folder_icon ' 🌏 '

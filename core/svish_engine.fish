@@ -4,23 +4,21 @@ function svish_init --description "Initialize global variables"
     # Load defaults in case user doesn't define them (e.g colours)
     load_defaults
 
-    # Load svish_state saved in env
+    # Load _svish_state saved in env
     load_state
 
     # Needed for removing all variables from env at the end
     set -q g_variable_list || set -g g_variable_list
 
     # Needed to invoke plugin_cleanup
-    set -q g_plugin_list || set -g g_plugin_list ""
+    set -q g_plugin_list || set -g g_plugin_list
 
     # For quick fire promptlets which don't define their own decorator
-    set -q default_decorator || set -g default_decorator ''
+    set -q default_decorator || set -g default_decorator
 
     # Load from cache to save prompt execution time
-    if not load_theme_cache
-        svish_load_theme
-        save_theme_cache
-    end
+    svish_load_theme
+
 end
 
 function svish_render_left_prompt --description "Parse prompt lines and render them"
@@ -41,27 +39,29 @@ function svish_render_left_prompt --description "Parse prompt lines and render t
         printf "\n"
     end
 
-    set -g state_prompt_count (math $state_prompt_count + 1 )
-    save_state
 end
 
-function svish_render_right_prompt --description "Few segments might go to right side"
+function svish_render_right_prompt --description "Few segments might go to the right"
 
-    # svish_command_completion_notification
+    # Parse and render promptlets on the right prompt
     set right_prompt (set|string match --regex '^svish_right_prompt')
     set parsed_prompt_line (parse_prompt_lines $right_prompt)
     render_prompt_line (listify $parsed_prompt_line)
+
+    set -g state_prompt_count (math $state_prompt_count + 1 )
+    set -g state_last_pwd (pwd)
+    save_state
 end
 
 function parse_line --description "Recursive function to expand segments and invoke plugins"
-    set line $argv
-    set processed_line
+    set prompt_line $argv
+    set parsed_line
 
     # Pick only "segment_xxx" from the line
-    for item in $line
-        if found '^segment_' in $item
-            set name (string replace --regex -- '^segment_' '' $item)
-            set plugin (string replace --regex -- '^segment_' 'svish_' $item)
+    for segment in $prompt_line
+        if found '^segment_' in $segment
+            set name (string replace --regex -- '^segment_' '' $segment)
+            set plugin (string replace --regex -- '^segment_' 'svish_' $segment)
 
             # We need a list of all plugins to clean up later
             set -g g_plugin_list $g_plugin_list $plugin
@@ -76,15 +76,15 @@ function parse_line --description "Recursive function to expand segments and inv
 
                 # If nested segments are found, recursively process them
                 set sub_segments (call parse_line $nested_segments)
-                set processed_line $processed_line $sub_segments
+                set parsed_line $parsed_line $sub_segments
             else
-                set processed_line $processed_line $item
+                set parsed_line $parsed_line $segment
             end
         else
-            set processed_line $processed_line $item
+            set parsed_line $parsed_line $segment
         end
     end
-    echo "$processed_line"
+    echo "$parsed_line"
 end
 
 function parse_prompt_lines --description "Validate, expand and sanitize prompt"
@@ -92,21 +92,23 @@ function parse_prompt_lines --description "Validate, expand and sanitize prompt"
     # Pick from theme variables where line starts with svish_left_prompt_
     set prompt_lines $argv
     set parsed_lines
+
     for line in $prompt_lines
-        set processed_line (parse_line $$line)
+        set parsed_line (parse_line $$line)
         if [ -z "$parsed_lines" ]
-            set parsed_lines "$processed_line"
+            set parsed_lines "$parsed_line"
         else
-            set parsed_lines "$parsed_lines" "$processed_line"
+            set parsed_lines "$parsed_lines" "$parsed_line"
         end
     end
 
+    # We need to result a "list" and not a "string"
     for line in $parsed_lines
         echo $line
     end
 end
 
-function render_prompt_line --description "Render each line of prompt segments"
+function render_prompt_line --description "Render each line of promptlets"
 
     # prompt_line -> segment_directory gap segment_git
     set prompt_line (listify $argv)
@@ -123,24 +125,27 @@ function render_prompt_line --description "Render each line of prompt segments"
         [ -z "$name" ] && break
 
         # Convert segment name to plugin name
-        set plugin (string replace 'segment_' 'svish_' $name)
-        set body (call $plugin)
-
+        set -g g_current_plugin (string replace 'segment_' 'svish_' $name)
+        set body (call $g_current_plugin)
+        set body (remove_unused_placeholders $body)
+        
         # Some plugins might not yield body due to error or like git not displaying in non-repo
-        if [ -z "$body" ]
+        if [ -z (string trim "$body") ]
             set --erase prompt_line[(math $index +1)]
             set index (math $index + 1)
             continue
         end
-
+        
+        # Choose the decorator
         set decorator (string replace 'segment_' '' "$name")_decorator
         [ -z "$$decorator" ] && set decorator default_decorator
         set connector $prompt_line[(math $index + 1)]
 
+        # Build the list of promptlets to be rendered
         set promptlets_list $promptlets_list $body $decorator $connector
         set index (math $index + 2)
-
     end
+
     # Decorator elements
     set BEGIN 1
     set FG 2
@@ -152,6 +157,7 @@ function render_prompt_line --description "Render each line of prompt segments"
     #/  "/Users/Sanjay"      black light_blue     overlap         master       black light_red      gap         Exit 127     white red 
     #/  -3                  -2                      -1              0           +1                      +2          +3          +4
 
+    # Time to finally render
     set index 1
     while true
 
@@ -186,19 +192,19 @@ function render_prompt_line --description "Render each line of prompt segments"
 
         # No previous segment, so print this segment's begin block as it is
         if [ $prev_exists = yes ]
-            [ $prev_connector = none ] && print $current_begin $current_bg black
-            [ $prev_connector = gap ] && print $prev_end black $current_bg
+            [ $prev_connector = none ] && print $current_begin $current_bg $NORMAL
+            [ $prev_connector = gap ] && print $prev_end $NORMAL $current_bg reverse
         else
-            print $current_begin $current_bg black
+            print $current_begin $current_bg $NORMAL
         end
 
         print $current_body $current_fg $current_bg
 
         if [ $next_exists = yes ]
-            [ $next_connector = gap -o $next_connector = none ] && print $current_end $current_bg black
+            [ $next_connector = gap -o $next_connector = none ] && print $current_end $current_bg $NORMAL
             [ $next_connector = overlap ] && print $current_end $current_bg $next_bg
         else
-            print $current_end $current_bg black
+            print $current_end $current_bg $NORMAL
         end
 
         # Skip to the next content
@@ -247,12 +253,16 @@ function sanitize_prompt_line --description "Remove misspelt/duplicate/leading/t
 end
 
 function shift_prompt_to_end --description "We can have only 1 prompt, that too at the end of last line"
+
     # found out the number of prompt lines we have
     set prompt_list $argv
     set line_count (count $prompt_list)
+
+    # If there are no prompt lines, at least put 'segment_prompt'
     if [ $line_count -eq 0 ]
         echo segment_prompt
     else
+
         set index 1
         while [ $index -lt $line_count ]
             set line (sanitize_prompt_line (string replace --regex '\bsegment_prompt\b' '' $prompt_list[$index]))
@@ -316,7 +326,6 @@ function load_theme_cache --description "Load cache if it exists"
             set -g g_variable_list $g_variable_list $setting[1] (listify $line)[3]
         end
         set state_checksum $checksum
-        save_state
         return 0
     end
     return 1
@@ -338,25 +347,25 @@ function decorator_element --description "Extract different elements of a decora
     get_value $deco_list[$argv[2]]
 end
 
-function load_defaults
-    set -g BLACK #000000
-    set -g BLUE #0000FF
-    set -g CYAN #00FFFF
-    set -g FUCHSIA #FF00FF
-    set -g GRAY #808080
-    set -g GREEN #008000
-    set -g LIME #00FF00
-    set -g MAGENTA #FF00FF
-    set -g MAROON #800000
-    set -g NAVY #000080
-    set -g OLIVE #808000
-    set -g ORANGE #FF781F
-    set -g PURPLE #800080
-    set -g RED #FF0000
-    set -g SILVER #C0C0C0
-    set -g TEAL #008080
-    set -g WHITE #FFFFFF
-    set -g YELLOW #FFFF00
+function load_defaults --description "Load defaults in case the user doesn't define them"
+    set -g BLACK 000000
+    set -g BLUE 0000FF
+    set -g CYAN 00FFFF
+    set -g FUCHSIA FF00FF
+    set -g GRAY 808080
+    set -g GREEN 008000
+    set -g LIME 00FF00
+    set -g MAGENTA FF00FF
+    set -g MAROON 800000
+    set -g NAVY 000080
+    set -g OLIVE 808000
+    set -g ORANGE FF781F
+    set -g PURPLE 800080
+    set -g RED FF0000
+    set -g SILVER C0C0C0
+    set -g TEAL 008080
+    set -g WHITE FFFFFF
+    set -g YELLOW FFFF00
     set -g NORMAL normal
 
     set -g ARROW_LEFT 
@@ -384,26 +393,29 @@ function load_defaults
 
 end
 
-function load_state
+function load_state --description "Load state variable from env and break it up into multiple variables"
     for entry in (map_entries $svish_state)
         set key (string match --regex -- '(.*)(?=:.*)' $entry)[2]
         set value (string match --regex -- '(?:.*\:)(.*)' $entry)[2]
-        [ -n $key ] && set -g state_{$key} $value
+        [ -n $key ] && set -g state_{$key} (string trim $value)
     end
+
+    # Some states required by all plugins
+    set -q state_prompt_count || set -g state_prompt_count 1
 end
 
-function save_state
-    set -g svish_state
+function save_state --description "Instead of multiple env variables, save all of them in single svish_state"
+    set -g svish_state ""
 
     for var in (set | string match --regex --entire '^state_')
         set state (string match --regex '^(state_\w+)' $var)[2]
         set name (string match --regex '^state_(\w+)' $var )[2]
-        set svish_state "$name:$$state $svish_state"
+        set -g svish_state "$name:$$state $svish_state"
     end
 end
 
 function svish_cleanup
-
+    
     # Call all plugin cleanup
     for plugin in $g_plugin_list
         call {$plugin}_cleanup 2>/dev/null
@@ -420,9 +432,15 @@ function svish_cleanup
         set -q $var && set --erase -g $var 2>/dev/null
     end
 
-    # Remove state variables which have been combined in svish_state
+    # Remove all svish_ variables
+    set svish_vars (set | string match --regex --entire '_svish_*')
+    for var in $svish_vars
+        # set --erase $var
+    end
+
+    # Remove state variables which have been combined in _svish_state
     for var in (set | string match --regex '^state_\w+\b')
-        set --erase -g $var
+        set -q $var && set --erase -g $var
     end
 
     # Remove all functions

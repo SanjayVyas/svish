@@ -3,6 +3,8 @@
 # Do not modify this file
 # @import it in the theme and redefine values
 
+@import themes/units/base.unit
+
 [ tips ]
 segment_tips '  #tip '
 tips_decorator NO_SEPARATOR GRAY NORMAL NO_SEPARATOR

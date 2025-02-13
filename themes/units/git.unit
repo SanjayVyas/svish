@@ -3,9 +3,10 @@
 # Do not modify this file
 # @import it in the theme and redefine values
 
+@import themes/units/base.unit
+
 [ git ]
 segment_git '  #remote #branch ⬆#level ┃ #hash 󰜘#commits 󱔗#objects 󱓊#branches  󰡯#untracked #added 󱇧#modified 󰗨#deleted' 
-
 git_decorator  BLACK LIGHT_REd 
 
     git_details                 yes

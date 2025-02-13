@@ -1,11 +1,31 @@
 # github.com/SanjayVyas
 
 function svish_process
+
+    # Define a state variable to hold the last process count
+    set -q state_process || set -g state_process
+
+    # Don't start showing process count on the first prompt
+    [ $state_prompt_count -lt 3 ] && return
+
+    # Extract last process count from state
+    set count (string trim (string split "," $state_process)[1])
+    [ -n "$count" ] && set last_process_count (math $count 2>/dev/null) || set last_process_count 0 
+
     set process_count (count (string trim --left (ps aux)))
     set job_count (count (string trim --left (jobs)))
 
     set body "$segment_process"
-    set body (expand_placeholder "processes" "$process_count" "$body" "$process_process")
-    set body (expand_placeholder "jobs" "$job_count" "$body" "$process_job")
+    if [ $last_process_count -eq 0 ]
+        set body (replace_placeholder "processes" "$process_count" "$body" "$process_process")
+    else if [ $last_process_count -ne $process_count ]
+        set diff (math $process_count - $last_process_count)
+        set abs_count (math abs $diff)
+        [ $diff -gt 0 ] && set arrow "⬆︎$abs_count" || set arrow "⬇︎$abs_count"
+        set body (replace_placeholder "processes" "$process_count$arrow" "$body" "$process_process")
+    end
+    set body (replace_placeholder "jobs" "$job_count" "$body" "$process_job")
+
+    set state_process "$process_count,$job_count"
     printf "%s" "$body"
 end
